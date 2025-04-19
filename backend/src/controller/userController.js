@@ -16,9 +16,9 @@ const generateAuthToken = (user) => {
   // using user Id as a token. When logged in this will act as a token to authenticate user.
   const id = {
     user: {
-      id: user._id
-    }
-  }
+      id: user._id,
+    },
+  };
   return jwt.sign(id, secret);
 };
 
@@ -201,51 +201,95 @@ export const forgetPassword = catchAsyncError(async (req, res, next) => {
 });
 
 export const updateUserName = catchAsyncError(async (req, res, next) => {
-  const {username} = req.body;
-  const {id} = req.body.params;
+  const { username } = req.body;
+  const { id } = req.body.params;
 
-  if(username.length < 4) {
-    return next(400, "Username should atleast contain 4 letters")
+  if (username.length < 4) {
+    return next(
+      new ErrorHandler(400, "Username should atleast contain 4 letters")
+    );
   }
 
   let user = await User.findById(id);
-  if(!user) {
-    return next(400, "User doesn't exists");
+  if (!user) {
+    return next(new ErrorHandler(400, "User doesn't exists"));
   }
 
-  user = await User.findByIdAndUpdate(id, {username}, {new: true});
+  user = await User.findByIdAndUpdate(id, { username }, { new: true });
 
   const token = generateAuthToken(user);
-  res.status(200).json({success: true, message: "Username updated successfully", token})
-  
-})
+  res
+    .status(200)
+    .json({ success: true, message: "Username updated successfully", token });
+});
 
 export const updateEmail = catchAsyncError(async (req, res, next) => {
-  const {email} = req.body;
-  const {id} = req.body.params;
+  const { email } = req.body;
+  const { id } = req.body.params;
 
-  if(!validateEmail(email)) {
-    return next(400, "Username should atleast contain 4 letters")
+  if (!validateEmail(email)) {
+    return next(400, "Username should atleast contain 4 letters");
   }
 
   let user = await User.findById(id);
-  if(!user) {
-    return next(400, "User doesn't exists");
+  if (!user) {
+    return next(new ErrorHandler(400, "User doesn't exists"));
   }
 
   const otp = await OTP.findOne({ email })
-  .sort({ createdAt: -1 })
-  .limit(1)
-  .select("isVerified");
+    .sort({ createdAt: -1 })
+    .limit(1)
+    .select("isVerified");
   if (!otp.isVerified) {
-  return next(new ErrorHandler(400, "Please verify your email first"));
+    return next(new ErrorHandler(400, "Please verify your email first"));
   }
 
-  user = await User.findByIdAndUpdate(id, {email}, {new: true});
+  user = await User.findByIdAndUpdate(id, { email }, { new: true });
 
   const token = generateAuthToken(user);
-  res.status(200).json({success: true, message: "Username updated successfully", token})
-  
-})
+  res
+    .status(200)
+    .json({ success: true, message: "Username updated successfully", token });
+});
 
+export const resetPassword = catchAsyncError(async (req, res, next) => {
+  const { email, password } = req.body;
+  const { id } = req.body.params;
 
+  if (!validateEmail(email)) {
+    return next(400, "Username should atleast contain 4 letters");
+  }
+
+  if (password.length < 8) {
+    return next(400, "Password should be atleast of 8 letters");
+  }
+
+  let user = await User.findById(id);
+  if (!user) {
+    return next(new ErrorHandler(400, "User doesn't exists"));
+  }
+
+  const otp = await OTP.findOne({ email })
+    .sort({ createdAt: -1 })
+    .limit(1)
+    .select("isVerified");
+  if (!otp.isVerified) {
+    return next(new ErrorHandler(400, "Please verify your email first"));
+  }
+
+  const salt = await bcrypt.genSalt(10);
+  const hashPassword = await bcrypt.hash(newPassword, salt);
+
+  user = await User.findByIdAndUpdate(
+    id,
+    { password: hashPassword },
+    { new: true }
+  );
+
+  const token = generateAuthToken(user);
+  res.json({
+    success: true,
+    message: "Password has been reset succesfully",
+    token,
+  });
+});
