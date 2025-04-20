@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const { HOST, USER, PASS } = process.env;
+const { HOST, GMAILUSER, PASS } = process.env;
 
 const mailSender = async (email, title, body) => {
   try {
@@ -11,7 +11,7 @@ const mailSender = async (email, title, body) => {
     let transporter = nodemailer.createTransport({
       host: HOST,
       auth: {
-        user: USER,
+        user: GMAILUSER,
         pass: PASS,
       },
     });
