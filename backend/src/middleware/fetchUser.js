@@ -19,7 +19,7 @@ const fetchUser = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler(400, "Invalid User"));
   }
 
-  req.body.user = data.user.id;
+  req.user.id = data.user.id;
   next();
 });
 

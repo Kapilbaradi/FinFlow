@@ -4,6 +4,10 @@ import dotenv from "dotenv";
 
 import catchAsyncError from "../middleware/catchAsyncError.js";
 import ErrorHandler from "../utils/ErrorHandler.js";
+import {
+  capitalizeFirstLetter,
+  normalizeString,
+} from "../utils/normalizeData.js";
 import User from "../models/UserSchema.js";
 import OTP from "../models/OTPModel.js";
 
@@ -52,6 +56,9 @@ export const login = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler(400, "Please enter all the fields"));
   }
 
+  // Normalize the string by trimming spaces and converting to lowercase, ensuring consistent storage even if users input mixed-case emails or extra spaces.
+  email = normalizeString(email);
+
   //validating email and returns email if the entered email is not a proper email.
   if (!validateEmail(email)) {
     return next(
@@ -97,6 +104,11 @@ export const signup = catchAsyncError(async (req, res, next) => {
   if (!username || !email || !password) {
     return next(new ErrorHandler(400, "Please fill all the fields"));
   }
+
+  // Normalize the string by trimming spaces and converting to lowercase, ensuring consistent storage even if users input mixed-case data or extra spaces.
+  email = normalizeString(email);
+  username = normalizeString(username);
+
   if (username.length < 4) {
     return next(
       new ErrorHandler(400, "Username should be of atleast 4 letters")
@@ -140,7 +152,7 @@ export const signup = catchAsyncError(async (req, res, next) => {
 
   const token = generateAuthToken(user);
   let newUser = {
-    username,
+    username: capitalizeFirstLetter(user.username),
     email,
     profilePicPath: user.profilePic
       ? `http://localhost:5000/${user.profilePic}`
@@ -162,7 +174,7 @@ export const getUser = catchAsyncError(async (req, res, next) => {
   }
 
   let newUser = {
-    username,
+    username: capitalizeFirstLetter(user.username),
     email,
     profilePicPath: user.profilePic
       ? `http://localhost:5000/${user.profilePic}`
@@ -179,6 +191,9 @@ export const forgetPassword = catchAsyncError(async (req, res, next) => {
   if ((!email, !newPassword)) {
     return next(new ErrorHandler(400, "Please enter your email"));
   }
+
+  // Normalize the string by trimming spaces and converting to lowercase, ensuring consistent storage even if users input mixed-case data or extra spaces.
+  email = normalizeString(email);
 
   if (!validateEmail(email)) {
     return next(new ErrorHandler(400, "Please enter correct email"));
@@ -229,6 +244,9 @@ export const updateUserName = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler(400, "Invalid User"));
   }
 
+  // Normalize the string by trimming spaces and converting to lowercase, ensuring consistent storage even if users input mixed-case username or extra spaces.
+  username = normalizeString(username);
+
   if (username.length < 4) {
     return next(
       new ErrorHandler(400, "Username should atleast contain 4 letters")
@@ -240,7 +258,11 @@ export const updateUserName = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler(400, "User doesn't exists"));
   }
 
-  user = await User.findByIdAndUpdate(id, { username }, { new: true });
+  user = await User.findByIdAndUpdate(
+    id,
+    { $set: { username } },
+    { new: true }
+  );
 
   const token = generateAuthToken(user);
   res
@@ -256,6 +278,9 @@ export const updateEmail = catchAsyncError(async (req, res, next) => {
   if (id !== userId) {
     return next(new ErrorHandler(400, "Invalid User"));
   }
+
+  // Normalize the string by trimming spaces and converting to lowercase, ensuring consistent storage even if users input mixed-case data or extra spaces.
+  email = normalizeString(email);
 
   if (!validateEmail(email)) {
     return next(400, "Username should atleast contain 4 letters");
@@ -274,7 +299,7 @@ export const updateEmail = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler(400, "Please verify your email first"));
   }
 
-  user = await User.findByIdAndUpdate(id, { email }, { new: true });
+  user = await User.findByIdAndUpdate(id, { $set: { email } }, { new: true });
 
   const token = generateAuthToken(user);
   res
@@ -290,6 +315,9 @@ export const resetPassword = catchAsyncError(async (req, res, next) => {
   if (id !== userId) {
     return next(new ErrorHandler(400, "Invalid User"));
   }
+
+  // Normalize the string by trimming spaces and converting to lowercase, ensuring consistent storage even if users input mixed-case data or extra spaces.
+  email = normalizeString(email);
 
   if (!validateEmail(email)) {
     return next(400, "Username should atleast contain 4 letters");
@@ -317,7 +345,7 @@ export const resetPassword = catchAsyncError(async (req, res, next) => {
 
   user = await User.findByIdAndUpdate(
     id,
-    { password: hashPassword },
+    { $set: { password: hashPassword } },
     { new: true }
   );
 
@@ -346,7 +374,7 @@ export const updateProfilePic = catchAsyncError(async (req, res, next) => {
 
   user = await User.findByIdAndUpdate(
     id,
-    { profilePic: photoBase64 },
+    { $set: { profilePic: photoBase64 } },
     { new: true }
   );
 
