@@ -2,8 +2,13 @@ import mongoose, { Schema } from "mongoose";
 
 const dynamicFiledSchema = new Schema(
   {
-    name: { type: String },
+    fieldName: { type: String },
     value: mongoose.Schema.Types.Mixed, // Can be string, number, boolean, etc.
+    fieldType: {
+      type: String,
+      enum: ["text", "number", "file", "boolean"],
+      required: true,
+    },
   },
   { _id: false }
 );
@@ -21,6 +26,7 @@ const expenseSchema = new Schema(
     amount: { type: Number, required: true },
     category: { type: String, required: true },
     subCategory: { type: String, default: null },
+    transactionDate: { type: String, default: Date.now },
     // UPI related fields
     upiTransactionId: { type: String, default: null },
     upiStatus: {

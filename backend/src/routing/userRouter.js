@@ -25,8 +25,8 @@ router.put("/update-username/:id", fetchUser, updateUserName);
 router.put("/update-email/:id", fetchUser, updateEmail);
 router.put(
   "/update-profilepic/:id",
-  upload.single("profilePic"),
   fetchUser,
+  upload.single("profilePic"),
   updateProfilePic
 );
 router.delete("/delete-user/:id", fetchUser, deleteUser);
