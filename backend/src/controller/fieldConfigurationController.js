@@ -20,12 +20,8 @@ const getFields = catchAsyncError(async (req, res, next) => {
 
 // 2. Add a new custom field
 const addField = catchAsyncError(async (req, res, next) => {
-  const id = req.params.id;
   const userId = req.body.user;
 
-  if (id !== userId) {
-    return next(new ErrorHandler(400, "Invalid User"));
-  }
   const { fieldName, fieldType, required, options } = req.body;
 
   let config = await FieldConfiguration.findOne({ userId });
@@ -33,25 +29,19 @@ const addField = catchAsyncError(async (req, res, next) => {
   if (!config) {
     // If user has no config yet, create a new one
     config = new FieldConfiguration({
-      userId: id,
+      userId,
       titleName: "Title",
-      paymentType: "Payment Type",
       amountName: "Amount",
-      categoryName: "Categories",
-      subCategoryName: "Subcategory",
       customFields: [],
     });
   }
 
   // Check if field already exists
-  if (config.fields.some((f) => f.fieldName === fieldName)) {
-    return res
-      .status(400)
-      .json({ message: "Field with this name already exists" });
+  if (config.customFields.some((f) => f.fieldName === fieldName)) {
+    return next(new ErrorHandler(400, "Field with this name already exists"));
   }
 
-  config.fields.push({ fieldName, fieldType, required, options });
-  config.updatedAt = Date.now();
+  config.customFields.push({ fieldName, fieldType, required, options });
   await config.save();
 
   res
@@ -64,21 +54,21 @@ const editField = catchAsyncError(async (req, res, next) => {
   const id = req.params.id;
   const userId = req.body.user;
 
-  if (id !== userId) {
-    return next(new ErrorHandler(400, "Invalid User"));
-  }
   const { oldFieldName, newFieldName, fieldType, required, options } = req.body;
 
-  const config = await FieldConfiguration.findOne({ userId: req.user.id });
-
+  const config = await FieldConfiguration.findById(id);
   if (!config) {
-    return res.status(404).json({ message: "Field configuration not found" });
+    return next(new ErrorHandler(404, "Field configuration not found"));
   }
 
-  const field = config.fields.find((f) => f.fieldName === oldFieldName);
+  if (config.userId.toString() !== userId) {
+    return next(new ErrorHandler(403, "Unauthorized"));
+  }
+
+  const field = config.customFields.find((f) => f.fieldName === oldFieldName);
 
   if (!field) {
-    return res.status(404).json({ message: "Field not found" });
+    return next(new ErrorHandler(404, "Field not found"));
   }
 
   // Update field details
@@ -87,28 +77,30 @@ const editField = catchAsyncError(async (req, res, next) => {
   field.required = required !== undefined ? required : field.required;
   field.options = options || field.options;
 
-  config.updatedAt = Date.now();
   await config.save();
 
   res
     .status(200)
-    .json({ message: "Field updated successfully", fields: config.fields });
+    .json({
+      message: "Field updated successfully",
+      fields: config.customFields,
+    });
 });
 
 // 4. Delete a field
 const deleteField = catchAsyncError(async (req, res, next) => {
   const id = req.params.id;
   const userId = req.body.user;
-
-  if (id !== userId) {
-    return next(new ErrorHandler(400, "Invalid User"));
-  }
   const { fieldName } = req.body;
 
-  const config = await FieldConfiguration.findOne({ userId: req.user.id });
+  const config = await FieldConfiguration.findById(id);
 
   if (!config) {
-    return res.status(404).json({ message: "Field configuration not found" });
+    return next(new ErrorHandler(404, "Field configuration not found"));
+  }
+
+  if (config.userId.toString() !== userId) {
+    return next(new ErrorHandler(403, "Unauthorized"));
   }
 
   const initialLength = config.fields.length;
@@ -116,15 +108,16 @@ const deleteField = catchAsyncError(async (req, res, next) => {
   config.fields = config.fields.filter((f) => f.fieldName !== fieldName);
 
   if (config.fields.length === initialLength) {
-    return res.status(404).json({ message: "Field not found" });
+    return next(new ErrorHandler(404, "Field not found"));
   }
-
-  config.updatedAt = Date.now();
   await config.save();
 
   res
     .status(200)
-    .json({ message: "Field deleted successfully", fields: config.fields });
+    .json({
+      message: "Field deleted successfully",
+      fields: config.customFields,
+    });
 });
 
 export { getFields, addField, editField, deleteField };

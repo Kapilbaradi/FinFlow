@@ -47,9 +47,22 @@ const verifyOTP = async (email, userOtp, next) => {
   } catch (error) {}
 };
 
+const setUser = (userInfo) => {
+  const user = {
+    id: userInfo.id,
+    username: capitalizeFirstLetter(userInfo.username),
+    email: userInfo.email,
+    profilePicPath: userInfo.profilePic
+      ? `http://localhost:5000/${userInfo.profilePic}`
+      : `http://localhost:5000/uploads/default.png`,
+  };
+
+  return user;
+};
+
 //This controller contains the logic related to user login.
 export const login = catchAsyncError(async (req, res, next) => {
-  const { email, password } = req.body;
+  let { email, password } = req.body;
 
   //If email and password doesn't exist then return error.
   if (!email || !password) {
@@ -74,7 +87,7 @@ export const login = catchAsyncError(async (req, res, next) => {
   }
 
   //finding user in the database by email provided by user.
-  const user = await User.findOne({ email });
+  let user = await User.findOne({ email });
   //if user doesn't exist return error.
   if (!user) {
     return next(
@@ -94,11 +107,13 @@ export const login = catchAsyncError(async (req, res, next) => {
   //generate auth token.
   const token = generateAuthToken(user);
 
-  res.status(200).json({ success: true, token });
+  user = setUser(user);
+
+  res.status(200).json({ success: true, user, token });
 });
 
 export const signup = catchAsyncError(async (req, res, next) => {
-  const { username, email, password } = req.body;
+  let { username, email, password } = req.body;
   const profilePic = req.file ? req.file.buffer.toString("base64") : null;
 
   if (!username || !email || !password) {
@@ -151,18 +166,14 @@ export const signup = catchAsyncError(async (req, res, next) => {
   });
 
   const token = generateAuthToken(user);
-  let newUser = {
-    username: capitalizeFirstLetter(user.username),
-    email,
-    profilePicPath: user.profilePic
-      ? `http://localhost:5000/${user.profilePic}`
-      : `http://localhost:5000/uploads/default.png`,
-  };
-  res.status(201).json({ success: true, token, newUser });
+  user = setUser(user);
+
+  res.status(201).json({ success: true, token, user });
 });
 
 export const getUser = catchAsyncError(async (req, res, next) => {
-  const { id } = req.params.id;
+  const id = req.user.id;
+  console.log(id);
 
   let user = await User.findById(id).select([
     "-password",
@@ -170,25 +181,19 @@ export const getUser = catchAsyncError(async (req, res, next) => {
     "-__v",
   ]);
   if (!user) {
-    return nextt(new ErrorHandler(400, "User doesn't exists"));
+    return next(new ErrorHandler(400, "User doesn't exists"));
   }
 
-  let newUser = {
-    username: capitalizeFirstLetter(user.username),
-    email,
-    profilePicPath: user.profilePic
-      ? `http://localhost:5000/${user.profilePic}`
-      : `http://localhost:5000/uploads/default.png`,
-  };
+  user = setUser(user);
 
-  res.status(200).json({ success: true, newUser });
+  res.status(200).json({ success: true, user });
 });
 
 // this controller contains forget password logic. It send otp to email for vertification and once verified user can reset there password.
 export const forgetPassword = catchAsyncError(async (req, res, next) => {
   const { email, newPassword } = req.body;
 
-  if ((!email, !newPassword)) {
+  if (!email || !newPassword) {
     return next(new ErrorHandler(400, "Please enter your email"));
   }
 
@@ -228,17 +233,21 @@ export const forgetPassword = catchAsyncError(async (req, res, next) => {
   );
 
   const token = generateAuthToken(user);
+
+  user = setUser(user);
+
   res.json({
     success: true,
     message: "Password has been reset succesfully",
     token,
+    user,
   });
 });
 
 export const updateUserName = catchAsyncError(async (req, res, next) => {
-  const { username } = req.body;
+  let { username } = req.body;
   const { id } = req.body.params;
-  const userId = req.body.user;
+  const userId = req.user.id;
 
   if (id !== userId) {
     return next(new ErrorHandler(400, "Invalid User"));
@@ -265,15 +274,20 @@ export const updateUserName = catchAsyncError(async (req, res, next) => {
   );
 
   const token = generateAuthToken(user);
-  res
-    .status(200)
-    .json({ success: true, message: "Username updated successfully", token });
+
+  user = setUser(user);
+  res.status(200).json({
+    success: true,
+    message: "Username updated successfully",
+    token,
+    user,
+  });
 });
 
 export const updateEmail = catchAsyncError(async (req, res, next) => {
-  const { email } = req.body;
+  let { email } = req.body;
   const { id } = req.body.params;
-  const userId = req.body.user;
+  const userId = req.user.id;
 
   if (id !== userId) {
     return next(new ErrorHandler(400, "Invalid User"));
@@ -302,6 +316,9 @@ export const updateEmail = catchAsyncError(async (req, res, next) => {
   user = await User.findByIdAndUpdate(id, { $set: { email } }, { new: true });
 
   const token = generateAuthToken(user);
+
+  user = setUser(user);
+
   res
     .status(200)
     .json({ success: true, message: "Username updated successfully", token });
@@ -310,7 +327,7 @@ export const updateEmail = catchAsyncError(async (req, res, next) => {
 export const resetPassword = catchAsyncError(async (req, res, next) => {
   const { email, password } = req.body;
   const { id } = req.body.params;
-  const userId = req.body.user;
+  const userId = req.user.id;
 
   if (id !== userId) {
     return next(new ErrorHandler(400, "Invalid User"));
@@ -350,6 +367,9 @@ export const resetPassword = catchAsyncError(async (req, res, next) => {
   );
 
   const token = generateAuthToken(user);
+
+  user = setUser(user);
+
   res.status(200).json({
     success: true,
     message: "Password has been reset succesfully",
@@ -359,17 +379,17 @@ export const resetPassword = catchAsyncError(async (req, res, next) => {
 
 export const updateProfilePic = catchAsyncError(async (req, res, next) => {
   const { id } = req.params.id;
-  const userId = req.body.user;
-
-  if (id !== userId) {
-    return next(new ErrorHandler(400, "Invalid User"));
-  }
+  const userId = req.user.id;
 
   const photoBase64 = req.file ? req.file.buffer.toString("base64") : null;
 
   let user = await User.findById(id);
   if (!user) {
     return next(new ErrorHandler(400, "User doesn't exists"));
+  }
+
+  if (user.id.toString() !== userId) {
+    return next(new ErrorHandler(400, "Invalid User"));
   }
 
   user = await User.findByIdAndUpdate(
@@ -380,11 +400,7 @@ export const updateProfilePic = catchAsyncError(async (req, res, next) => {
 
   const token = generateAuthToken(user);
 
-  let updatedProfilePic = {
-    profilePicPath: user.profilePic
-      ? `http://localhost:5000/${user.profilePic}`
-      : `http://localhost:5000/uploads/default.png`,
-  };
+  user = setUser(user);
 
   res.status(200).json({
     success: true,
@@ -395,15 +411,15 @@ export const updateProfilePic = catchAsyncError(async (req, res, next) => {
 
 export const deleteUser = catchAsyncError(async (req, res, next) => {
   const { id } = req.params.id;
-  const userId = req.body.user;
-
-  if (id !== userId) {
-    return next(new ErrorHandler(400, "Invalid User"));
-  }
+  const userId = req.user.id;
 
   let user = await User.findById(id);
   if (!user) {
     return next(new ErrorHandler(400, "User doesn't exists"));
+  }
+
+  if (user.id.toString() !== userId) {
+    return next(new ErrorHandler(400, "Invalid User"));
   }
 
   user = await User.findByIdAndDelete(id);

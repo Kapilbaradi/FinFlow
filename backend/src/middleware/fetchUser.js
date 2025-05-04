@@ -8,9 +8,9 @@ import ErrorHandler from "../utils/ErrorHandler.js";
 dotenv.config();
 
 const fetchUser = catchAsyncError(async (req, res, next) => {
-  const authToken = req.header["authorization"];
+  const authToken = req.headers["authorization"];
 
-  const token = authToken.split("Bearer ")[0];
+  const token = authToken.split("Bearer ")[1];
   if (!token) {
     return next(new ErrorHandler(400, "Invalid Token"));
   }
@@ -19,7 +19,9 @@ const fetchUser = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler(400, "Invalid User"));
   }
 
-  req.user.id = data.user.id;
+  req.user = {};
+  req.user.id = data.user.id
+
   next();
 });
 

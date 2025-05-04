@@ -8,37 +8,34 @@ const fieldConfigurationSchema = new Schema(
       required: true,
     },
     titleName: { type: String, required: true },
+    expenseType: {
+      type: [String],
+      required: true,
+      unique: true,
+      default: ["Asset", "Expense"],
+    },
     paymentType: {
-      type: String,
-      types: [
-        {
-          type: String,
-          paymentOptions: ["UPI", "Cash", "Debit Card", "Credit Card"],
-          required: true,
-        },
-      ],
+      type: [String],
+      default: ["UPI", "Cash", "Debit Card", "Credit Card"],
+      unique: true,
       required: true,
     },
+
     amountName: { type: String, required: true },
     categoryName: {
-      type: String,
-      categories: [
-        {
-          type: String,
-          options: ["Food", "Shopping", "Groceries", "Transportation"],
-        },
-      ],
+      type: [String],
+      default: ["Food", "Shopping", "Groceries", "Transportation"],
       required: true,
+      unique: true,
     },
-    subCategoryName: {
-      type: String,
-      parentCategory: [
-        {
-          category: { type: String, options: [{ type: String }] },
-        },
-      ],
-      default: null,
-    },
+    subCategoryName: [
+      {
+        type: String,
+        options: [{ type: String, unique: true }],
+        unique: true,
+        default: null,
+      },
+    ],
     customFields: [
       {
         fieldName: { type: String, required: true },
@@ -51,7 +48,7 @@ const fieldConfigurationSchema = new Schema(
   { timestamps: true }
 );
 
-const fieldConfigurationModel = new mongoose.model(
+const fieldConfigurationModel = mongoose.model(
   "fieldConfiguration",
   fieldConfigurationSchema
 );
