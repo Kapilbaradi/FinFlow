@@ -54,7 +54,7 @@ const setUser = (userInfo) => {
     email: userInfo.email,
     profilePicPath: userInfo.profilePic
       ? `http://localhost:5000/${userInfo.profilePic}`
-      : `http://localhost:5000/uploads/default.png`,
+      : `http://localhost:5000/uploads/defaultUser.png`,
   };
 
   return user;
@@ -378,7 +378,7 @@ export const resetPassword = catchAsyncError(async (req, res, next) => {
 });
 
 export const updateProfilePic = catchAsyncError(async (req, res, next) => {
-  const { id } = req.params.id;
+  const id = req.params.id;
   const userId = req.user.id;
 
   const photoBase64 = req.file ? req.file.buffer.toString("base64") : null;
@@ -405,7 +405,7 @@ export const updateProfilePic = catchAsyncError(async (req, res, next) => {
   res.status(200).json({
     success: true,
     message: "Profile pic update successfully",
-    updatedProfilePic,
+    user,
   });
 });
 
