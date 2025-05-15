@@ -23,6 +23,7 @@ const SignUp = () => {
     }
     console.log(image);
   };
+  
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
