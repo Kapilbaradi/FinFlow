@@ -10,6 +10,7 @@ import {
 } from "../utils/normalizeData.js";
 import User from "../models/UserSchema.js";
 import OTP from "../models/OTPModel.js";
+import { uploadOnCloudinary } from "../utils/Cloudinary.js";
 
 dotenv.config(); // reads the env file and parse the content and loads it into process.env
 
@@ -32,28 +33,13 @@ const validateEmail = (email) => {
   return emailRegex.test(email); // returns boolean value. True if email matches emailRegex else returns false.
 };
 
-const verifyOTP = async (email, userOtp, next) => {
-  try {
-    if (!otp) {
-      return next(new ErrorHandler(400, "Please enter OTP"));
-    }
-    const otp = await OTP.findOne({ email });
-
-    if (otp.otp !== userOtp) {
-      return next(new ErrorHandler(400, "Please enter correct OTP"));
-    }
-
-    return true;
-  } catch (error) {}
-};
-
 const setUser = (userInfo) => {
   const user = {
     id: userInfo.id,
     username: capitalizeFirstLetter(userInfo.username),
     email: userInfo.email,
     profilePicPath: userInfo.profilePic
-      ? `http://localhost:5000/${userInfo.profilePic}`
+      ? `https://res.cloudinary.com/djppjdulx/image/upload/v1747556794/defaultUser_bvigjn.png`
       : `http://localhost:5000/uploads/defaultUser.png`,
   };
 
@@ -114,11 +100,11 @@ export const login = catchAsyncError(async (req, res, next) => {
 
 export const signup = catchAsyncError(async (req, res, next) => {
   let { username, email, password } = req.body;
-  const profilePic = req.file ? req.file.buffer.toString("base64") : null;
 
   if (!username || !email || !password) {
     return next(new ErrorHandler(400, "Please fill all the fields"));
   }
+  console.log("SignUP");
 
   // Normalize the string by trimming spaces and converting to lowercase, ensuring consistent storage even if users input mixed-case data or extra spaces.
   email = normalizeString(email);
@@ -150,6 +136,7 @@ export const signup = catchAsyncError(async (req, res, next) => {
   const response = await OTP.findOne({ email })
     .sort({ createdAt: -1 })
     .limit(1);
+  console.log(response);
   if (response === null || !response.isVerified) {
     return next(new ErrorHandler(400, "Please verify your email"));
   }
@@ -157,13 +144,15 @@ export const signup = catchAsyncError(async (req, res, next) => {
   //Secure password
   const salt = await bcrypt.genSalt(10);
   let hashPassword = await bcrypt.hash(password, salt);
+  const query = { username, email, password: hashPassword };
 
-  user = await User.create({
-    username,
-    email,
-    password: hashPassword,
-    profilePic,
-  });
+  if (req.file) {
+    const uploadResult = await uploadOnCloudinary(req.file.path);
+    query.profilePic = uploadResult.secure_url;
+    query.profilePicId = uploadResult.public_Id;
+  }
+
+  user = await User.create(query);
 
   const token = generateAuthToken(user);
   user = setUser(user);

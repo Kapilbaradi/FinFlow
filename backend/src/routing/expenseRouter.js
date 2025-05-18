@@ -1,7 +1,7 @@
 import express from "express";
 
 import fetchUser from "../middleware/fetchUser.js";
-import upload from "../utils/ImageHandler.js";
+import upload from "../utils/FileHandler.js";
 import {
   createExpense,
   deleteExpense,

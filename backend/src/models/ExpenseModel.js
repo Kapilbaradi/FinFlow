@@ -9,6 +9,7 @@ const dynamicFiledSchema = new Schema(
       enum: ["text", "number", "file", "boolean"],
       required: true,
     },
+    fileId: { type: String },
   },
   { _id: false }
 );

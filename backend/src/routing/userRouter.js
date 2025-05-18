@@ -11,7 +11,7 @@ import {
   updateProfilePic,
   updateUserName,
 } from "../controller/userController.js";
-import upload from "../utils/ImageHandler.js";
+import upload from "../utils/FileHandler.js";
 import fetchUser from "../middleware/fetchUser.js";
 
 const router = express.Router();
