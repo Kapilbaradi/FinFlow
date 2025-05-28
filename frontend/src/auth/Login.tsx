@@ -1,5 +1,5 @@
 import { useState, FormEvent } from "react";
-import finflowlogo from "../assets/finflowlogo.webp";
+import AuthWrapper from "./AuthWrapper";
 const Login = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
@@ -16,15 +16,15 @@ const Login = () => {
     }
   };
   return (
-    <div className="min-h-screen flex flex-col md:flex-row items-center justify-center bg-white px-4 py-8">
-      <div className="w-full max-w-md bg-white p-6 rounded-2xl shadow-md inset-shadow-md md:py-[48px]">
-        <div className="mb-4 px-4 text-left">
-          <img src={finflowlogo} alt="FinFlow Logo" className="h-8 mb-2" />
-          <p className="text-gray-500 text-sm">Login</p>
-        </div>
-
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          <div className="w-full px-4 py-2 bg-[#F3F4F6FF] flex items-center rounded-2xl">
+    <>
+      <AuthWrapper
+        header="Sign in"
+        description="to continue to FinFlow"
+        buttonText="Login"
+        buttonStyle="w-auto"
+      >
+        <div className="w-full md:basis-1/2">
+          <div className="w-full px-4 py-2 bg-[#F3F4F6FF] flex items-center rounded-2xl mb-3">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -119,31 +119,9 @@ const Login = () => {
           {/* <p className="text-green-600 text-sm font-semibold">
             Great job! Your password is strong.
           </p> */}
-
-          <button
-            type="submit"
-            className="w-full bg-[#636AE8FF] text-white py-[6px] px-4 rounded-xl text-base cursor-pointer"
-          >
-            Login
-          </button>
-        </form>
-
-        <p className="text-xs text-gray-500 mt-4">
-          By continuing you agree to our
-        </p>
-        <p className="text-xs text-gray-500 mt-1 mb-5">
-          <span className="font-semibold text-black">Terms & Conditions</span>{" "}
-          and <span className="font-semibold text-black">Privacy Policy</span>.
-        </p>
-
-        <p className="text-sm mt-2 md:mt-9">
-          Don't have an account?{" "}
-          <a href="/login" className="text-[#636AE8FF] hover:underline">
-            SignUP
-          </a>
-        </p>
-      </div>
-    </div>
+        </div>
+      </AuthWrapper>
+    </>
   );
 };
 
