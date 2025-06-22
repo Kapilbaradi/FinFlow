@@ -2,6 +2,7 @@
 // import Signup from "./auth/signup";
 import "./App.css";
 import Navbar from "./components/Navbar";
+import Home from "./pages/Home";
 //import SendOTP from "./auth/sendOTP";
 
 function App() {
@@ -11,6 +12,7 @@ function App() {
       {/* <Login />  */}
         {/* <Signup /> */}
         <Navbar />
+        <Home />
     </>
   );
 }
