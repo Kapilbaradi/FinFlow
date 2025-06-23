@@ -1,17 +1,29 @@
-import { useState, MouseEvent } from "react";
+import { useState, RefObject } from "react";
 
 export const useDropdownToggle = () => {
-  const [showDropDown, setShowDropDown] = useState(false);
+  const [showDropDown, setShowDropDown] = useState<string | null>(null);
 
-  const toggleDropdown = (event: MouseEvent) => {
-    // console.log(event.currentTarget.parentElement)
-    const parentElement = (event.currentTarget as HTMLElement).parentElement;
-    const dropDownElement = parentElement?.nextSibling as HTMLElement;
-    if (dropDownElement !== null && showDropDown) {
-      console.log(dropDownElement?.scrollHeight);
-      // dropDownElement.style.maxHeight = dropDownElement.scrollHeight + "px";
-    }
-    setShowDropDown((prev) => !prev);
+  const toggleDropdown = (id: string) => {
+    setShowDropDown((prev) => (prev === id ? null : id)); // dateRange.
   };
-  return { showDropDown, toggleDropdown };
+
+  const setDropdownHeight = (
+    currentRef: RefObject<HTMLDivElement | null>,
+    id: string
+  ) => {
+    const currentElement = currentRef.current;
+    if (currentElement) {
+      if (!showDropDown) {
+        const height = currentElement.scrollHeight;
+        currentElement.style.maxHeight = height + "px";
+        currentElement.style.border = "1px solid #d1d5dc";
+      } else {
+        currentElement.style.border = "none";
+        currentElement.style.maxHeight = "0px";
+      }
+    }
+
+    toggleDropdown(id);
+  };
+  return { showDropDown, toggleDropdown, setDropdownHeight };
 };

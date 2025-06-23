@@ -1,17 +1,15 @@
-import React from "react";
-
 import { useDropdownToggle } from "../customHooks/useDropdownToggle";
 import Card from "./Card";
 import DropDown from "./DropDown";
 
 const Modal = () => {
-  const { showDropDown, toggleDropdown } = useDropdownToggle();
+  const { showDropDown } = useDropdownToggle();
   return (
     <div className="py-4 my-2">
       <Card style="bg-white shadow-sm px-2">
         <>
           <div className="flex justify-between items-center py-2 border-b-1 border-gray-100">
-            <h1>Create Expense</h1>
+            <h1 className="text-xl">Create Expense</h1>
             <div>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -34,7 +32,7 @@ const Modal = () => {
               <div>
                 <label
                   htmlFor="title"
-                  className="block text-left font-semibold text-sm"
+                  className="block text-left font-semibold text-sm my-1"
                 >
                   Title:
                 </label>
@@ -42,54 +40,43 @@ const Modal = () => {
                   type="text"
                   name="title"
                   id="title"
-                  className="w-full border-0 bg-gray-100 rounded outline-none py-1 px-2"
+                  className="w-full ring-1 ring-gray-300 ring-inset rounded outline-none py-1 px-2"
                 />
               </div>
               <div className="my-2">
                 <label
                   htmlFor="type"
-                  className="block text-left font-semibold text-sm"
+                  className="block text-left font-semibold text-sm my-1"
                 >
                   Type:
                 </label>
-                {/* <input
-                type="text"
-                name="type"
-                id="type"
-                className="w-full border-0 bg-gray-100 rounded outline-none py-1 px-2"
-              /> */}
                 <DropDown
+                  id="Type"
                   defaultString="Asset"
                   dropDownList={["Asset", "Liability"]}
-                  showDropDown={showDropDown}
-                  toggleDropdown={toggleDropdown}
+                  showDropDown={showDropDown === "Type"}
                   style="w-full"
                 />
               </div>
-              <div>
+              <div className="my-2">
                 <label
                   htmlFor="Payment"
-                  className="block text-left font-semibold text-sm"
+                  className="block text-left font-semibold text-sm my-1"
                 >
                   Payment:
                 </label>
-                {/* <input
-                  type="text"
-                  name="Payment"
-                  id="Payment"
-                  className="w-full border-0 bg-gray-100 rounded outline-none py-1 px-2"
-                /> */}
                 <DropDown
+                  id="Payment"
                   defaultString="Payment Type"
                   dropDownList={["Cash", "Card", "UPI"]}
-                  showDropDown={showDropDown}
-                  toggleDropdown={toggleDropdown}
+                  showDropDown={showDropDown === "Payment"}
+                  style="w-full"
                 />
               </div>
-              <div>
+              <div className="my-2">
                 <label
                   htmlFor="amount"
-                  className="block text-left font-semibold text-sm"
+                  className="block text-left font-semibold text-sm my-1"
                 >
                   Amount:
                 </label>
@@ -97,23 +84,19 @@ const Modal = () => {
                   type="number"
                   name="amount"
                   id="amount"
-                  className="w-full border-0 bg-gray-100 rounded outline-none py-1 px-2"
+                  className="w-full ring-1 ring-gray-300 ring-inset rounded outline-none py-1 px-2 appearance-none"
+                  style={{appearance: "none", WebkitAppearance: "none", MozAppearance: "textfield"}}
                 />
               </div>
-              <div>
+              <div className="my-2">
                 <label
                   htmlFor="category"
-                  className="block text-left font-semibold text-sm"
+                  className="block text-left font-semibold text-sm my-1"
                 >
                   Category:
                 </label>
-                {/* <input
-                  type="text"
-                  name="category"
-                  id="category"
-                  className="w-full border-0 bg-gray-100 rounded outline-none py-1 px-2"
-                /> */}
                 <DropDown
+                  id="Category"
                   defaultString="Shopping"
                   dropDownList={[
                     "Shopping",
@@ -121,34 +104,29 @@ const Modal = () => {
                     "Transpotation",
                     "Food",
                   ]}
-                  showDropDown={showDropDown}
-                  toggleDropdown={toggleDropdown}
+                  showDropDown={showDropDown === "Category"}
+                  style="w-full"
                 />
               </div>
-              <div>
+              <div className="my-2">
                 <label
                   htmlFor="sub-category"
-                  className="block text-left font-semibold text-sm"
+                  className="block text-left font-semibold text-sm my-1"
                 >
                   sub-category:
                 </label>
-                {/* <input
-                  type="text"
-                  name="sub-category"
-                  id="sub-category"
-                  className="w-full border-0 bg-gray-100 rounded outline-none py-1 px-2"
-                /> */}
                 <DropDown
+                  id="sub-category"
                   defaultString="Shirt"
                   dropDownList={["Shiit", "Pants", "T-shirt"]}
-                  showDropDown={showDropDown}
-                  toggleDropdown={toggleDropdown}
+                  showDropDown={showDropDown === "sub-category"}
+                  style="w-full"
                 />
               </div>
-              <div>
+              <div className="my-2">
                 <label
                   htmlFor="date"
-                  className="block text-left font-semibold text-sm"
+                  className="block text-left font-semibold text-sm my-1"
                 >
                   Date:
                 </label>
@@ -156,8 +134,11 @@ const Modal = () => {
                   type="date"
                   name="date"
                   id="date"
-                  className="w-full border-0 bg-gray-100 rounded outline-none py-1 px-2"
+                  className="w-full ring-1 ring-gray-300 ring-inset rounded outline-none py-1 px-2"
                 />
+              </div>
+              <div className="my-5">
+                <button className="text-white bg-[#636AE8FF] rounded-md outline-none border-0 py-1 px-5 cursor-pointer">Create Expense</button>
               </div>
             </form>
           </div>

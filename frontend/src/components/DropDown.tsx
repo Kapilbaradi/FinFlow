@@ -1,30 +1,34 @@
-import React, {MouseEvent} from "react";
+import { useRef } from "react";
+import { useDropdownToggle } from "../customHooks/useDropdownToggle";
 
 interface DropDownProps {
+  id: string;
   defaultString: string;
   dropDownList: string[];
   style?: string;
   showDropDown: boolean;
-  toggleDropdown: (event:MouseEvent) => void;
 }
 
 const DropDown = ({
+  id,
   defaultString,
   dropDownList,
   style,
   showDropDown,
-  toggleDropdown,
 }: DropDownProps) => {
+  const currentRef = useRef<HTMLDivElement | null>(null);
+  const { setDropdownHeight } = useDropdownToggle();
+
   return (
     <div className={`relative inline-block text-left ${style}`}>
       <div>
         <button
           type="button"
-          className="inline-flex w-full justify-between gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-xs ring-1 ring-gray-300 ring-inset hover:bg-gray-50 cursor-pointer"
+          className="inline-flex w-full justify-between gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-gray-300 ring-inset cursor-pointer"
           id="menu-button"
           aria-expanded="true"
           aria-haspopup="true"
-          onClick={toggleDropdown}
+          onClick={() => setDropdownHeight(currentRef, id)}
         >
           {defaultString}
           <svg
@@ -43,11 +47,15 @@ const DropDown = ({
         </button>
       </div>
       <div
+        ref={currentRef}
+        style={{
+          maxHeight: "0px",
+          overflow: "hidden",
+          transition: "max-height 0.1s ease-in-out",
+        }}
         className={`${
-          showDropDown
-            ? "max-h-[155px] shadow-lg rounded-md transition-all duration-500 ease-in-out ring-1 ring-black/5 focus:outline-hidden"
-            : "max-h-[0px] d-block transition-all duration-500 ease-in-out"
-        } overflow-hidden absolute right-0 z-10 mt-2 w-56 bg-white origin-top-right`}
+          showDropDown ? "" : ""
+        } overflow-hidden rounded absolute right-0 z-10 mt-2 w-56 bg-white origin-top-right`}
         role="menu"
         aria-orientation="vertical"
         aria-labelledby="menu-button"
@@ -63,7 +71,7 @@ const DropDown = ({
                 role="menuitem"
                 tabIndex={-1}
                 id="menu-item-0"
-                onClick={toggleDropdown}
+                onClick={() => setDropdownHeight(currentRef, id)}
               >
                 {value}
               </a>
