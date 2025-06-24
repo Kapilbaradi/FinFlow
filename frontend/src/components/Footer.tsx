@@ -1,31 +1,14 @@
-import finflowLogo from "../assets/finflowlogo.webp";
-import ImageComponent from "./ImageComponent";
+import { Dispatch, SetStateAction } from 'react'
 
-const Navbar = () => {
+import ImageComponent from './ImageComponent';
+
+interface PropeType {
+  setShowModal: Dispatch<SetStateAction<boolean>>;
+}
+
+const Footer = ({ setShowModal }: PropeType) => {
   return (
-    <>
-      <div className="py-4 h-[60px]">
-        <nav className="flex bg-white items-center justify-center sm:justify-start w-screen px-4 py-3 fixed top-0 left-0 sm:shadow sm:px-[30px] z-[30]">
-          <div className="w-[150px] sm:me-[24px]">
-            <img src={finflowLogo} alt="finflow Logo" className="w-full" />
-          </div>
-          <div className="hidden sm:flex items-center gap-2 w-full">
-            <a href="/" className="mx-3">
-              Home
-            </a>
-            <a href="/" className="mx-3">
-              Report
-            </a>
-            <a href="/" className="mx-3">
-              Setup
-            </a>
-            <div className="ms-auto">
-              <ImageComponent />
-            </div>
-          </div>
-        </nav>
-      </div>
-      {/* <div className="py-4">
+    <div className="py-4 h-[65px]">
         <nav className="w-screen bg-white px-4 py-3 fixed bottom-0 left-0 flex items-center justify-between border-t-1 border-gray-100 sm:hidden z-[30]">
           <div>
             <svg
@@ -96,9 +79,8 @@ const Navbar = () => {
           </div>
           <ImageComponent />
         </nav>
-      </div> */}
-    </>
-  );
-};
+      </div>
+  )
+}
 
-export default Navbar;
+export default Footer

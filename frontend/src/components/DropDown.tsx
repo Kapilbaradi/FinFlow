@@ -6,6 +6,7 @@ interface DropDownProps {
   defaultString: string;
   dropDownList: string[];
   style?: string;
+  listStyle?: string;
   showDropDown: boolean;
 }
 
@@ -14,6 +15,7 @@ const DropDown = ({
   defaultString,
   dropDownList,
   style,
+  listStyle,
   showDropDown,
 }: DropDownProps) => {
   const currentRef = useRef<HTMLDivElement | null>(null);
@@ -55,7 +57,7 @@ const DropDown = ({
         }}
         className={`${
           showDropDown ? "" : ""
-        } overflow-hidden rounded absolute right-0 z-10 mt-2 w-56 bg-white origin-top-right`}
+        } overflow-hidden rounded absolute right-0 z-10 mt-2 w-56 bg-white origin-top-right ${listStyle}`}
         role="menu"
         aria-orientation="vertical"
         aria-labelledby="menu-button"

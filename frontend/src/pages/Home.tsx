@@ -1,9 +1,10 @@
-// import { useState } from "react";
+import { Dispatch, SetStateAction } from "react";
 
 import { useDropdownToggle } from "../customHooks/useDropdownToggle";
 import Card from "../components/Card";
 import expenseCard from "../assets/ExpenseCardImage(1).png";
 import DropDown from "../components/DropDown";
+import Modal from "../components/Modal";
 
 const expenseListData = [
   {
@@ -27,6 +28,13 @@ const expenseListData = [
     title: "Buy new phone",
     price: "1290",
   },
+  {
+    day: "Sunday",
+    date: "12",
+    category: "Food",
+    title: "Pizza",
+    price: "250",
+  },
 ];
 
 type ExpenseListDataType = {
@@ -43,6 +51,11 @@ type GroupedExpense = {
   total: number;
   items: ExpenseListDataType[];
 };
+
+interface PropeType {
+  showModal: boolean
+  setShowModal: Dispatch<SetStateAction<boolean>>
+}
 
 const groupExpenseByDate = (expenseListData: ExpenseListDataType[]) => {
   const expenseMap = new Map<string, GroupedExpense>();
@@ -66,12 +79,17 @@ const groupExpenseByDate = (expenseListData: ExpenseListDataType[]) => {
   return Array.from(expenseMap.values());
 };
 
-const Home = () => {
+const Home = ({showModal, setShowModal}: PropeType) => {
   const { showDropDown } = useDropdownToggle();
   const groupExpense = groupExpenseByDate(expenseListData);
 
   return (
     <>
+        <div className={`fixed top-[0px] w-full bg-black/25 h-full transition-all duration-500 ${showModal ? 'opacity-100 z-50' : 'opacity-0 z-0]'} overflow-y-auto`}>
+          <div className={`flex justify-center items-center w-full h-full transition-all duration-500 transform ${showModal ? 'translate-y-0 opacity-100' : 'translate-y-[-100px] opacity-0'}`}>
+          <Modal setShowModal={setShowModal}/>
+          </div>
+        </div>
       <div>
         <Card style="bg-[#636AE8FF] shadow-sm">
           <div className="px-4 py-4 relative">
@@ -109,7 +127,7 @@ const Home = () => {
           showDropDown={showDropDown === "dateRange"}
         />
       </div>
-      <div>
+      <div className="overflow-y-auto pb-4">
         {groupExpense.map((expense, index) => {
           return (
             <Card key={index} style="border-2 border-gray-100">

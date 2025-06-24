@@ -1,23 +1,28 @@
+import { Dispatch, SetStateAction } from "react";
 import { useDropdownToggle } from "../customHooks/useDropdownToggle";
 import Card from "./Card";
 import DropDown from "./DropDown";
 
-const Modal = () => {
+interface PropeType {
+  setShowModal: Dispatch<SetStateAction<boolean>>;
+}
+
+const Modal = ({ setShowModal }: PropeType) => {
   const { showDropDown } = useDropdownToggle();
   return (
-    <div className="py-4 my-2">
-      <Card style="bg-white shadow-sm px-2">
+    <div className="py-4 my-2 w-full">
+      <Card style="bg-white shadow-sm px-2 w-full">
         <>
           <div className="flex justify-between items-center py-2 border-b-1 border-gray-100">
             <h1 className="text-xl">Create Expense</h1>
-            <div>
+            <div onClick={() => setShowModal(false)}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth="1.5"
                 stroke="currentColor"
-                className="size-5"
+                className="size-5 cursor-pointer"
               >
                 <path
                   strokeLinecap="round"
@@ -56,6 +61,7 @@ const Modal = () => {
                   dropDownList={["Asset", "Liability"]}
                   showDropDown={showDropDown === "Type"}
                   style="w-full"
+                  listStyle="w-full"
                 />
               </div>
               <div className="my-2">
@@ -71,6 +77,7 @@ const Modal = () => {
                   dropDownList={["Cash", "Card", "UPI"]}
                   showDropDown={showDropDown === "Payment"}
                   style="w-full"
+                  listStyle="w-full"
                 />
               </div>
               <div className="my-2">
@@ -85,7 +92,11 @@ const Modal = () => {
                   name="amount"
                   id="amount"
                   className="w-full ring-1 ring-gray-300 ring-inset rounded outline-none py-1 px-2 appearance-none"
-                  style={{appearance: "none", WebkitAppearance: "none", MozAppearance: "textfield"}}
+                  style={{
+                    appearance: "none",
+                    WebkitAppearance: "none",
+                    MozAppearance: "textfield",
+                  }}
                 />
               </div>
               <div className="my-2">
@@ -106,6 +117,7 @@ const Modal = () => {
                   ]}
                   showDropDown={showDropDown === "Category"}
                   style="w-full"
+                  listStyle="w-full"
                 />
               </div>
               <div className="my-2">
@@ -121,6 +133,7 @@ const Modal = () => {
                   dropDownList={["Shiit", "Pants", "T-shirt"]}
                   showDropDown={showDropDown === "sub-category"}
                   style="w-full"
+                  listStyle="w-full"
                 />
               </div>
               <div className="my-2">
@@ -138,7 +151,12 @@ const Modal = () => {
                 />
               </div>
               <div className="my-5">
-                <button className="text-white bg-[#636AE8FF] rounded-md outline-none border-0 py-1 px-5 cursor-pointer">Create Expense</button>
+                <button
+                  className="text-white bg-[#636AE8FF] rounded-md outline-none border-0 py-1 px-5 cursor-pointer"
+                  onClick={() => setShowModal(false)}
+                >
+                  Create Expense
+                </button>
               </div>
             </form>
           </div>
