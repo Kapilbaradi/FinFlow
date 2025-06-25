@@ -53,8 +53,8 @@ type GroupedExpense = {
 };
 
 interface PropeType {
-  showModal: boolean
-  setShowModal: Dispatch<SetStateAction<boolean>>
+  showModal: boolean;
+  setShowModal: Dispatch<SetStateAction<boolean>>;
 }
 
 const groupExpenseByDate = (expenseListData: ExpenseListDataType[]) => {
@@ -79,17 +79,29 @@ const groupExpenseByDate = (expenseListData: ExpenseListDataType[]) => {
   return Array.from(expenseMap.values());
 };
 
-const Home = ({showModal, setShowModal}: PropeType) => {
+const Home = ({ showModal, setShowModal }: PropeType) => {
   const { showDropDown } = useDropdownToggle();
   const groupExpense = groupExpenseByDate(expenseListData);
 
   return (
     <>
-        <div className={`fixed top-[0px] w-full bg-black/25 h-full transition-all duration-500 ${showModal ? 'opacity-100 z-50' : 'opacity-0 z-0]'} overflow-y-auto`}>
-          <div className={`flex justify-center items-center w-full h-full transition-all duration-500 transform ${showModal ? 'translate-y-0 opacity-100' : 'translate-y-[-100px] opacity-0'}`}>
-          <Modal setShowModal={setShowModal}/>
-          </div>
+      <div
+        className={`fixed top-[0px] w-full bg-black/25 h-full transition-all duration-500 ${
+          showModal
+            ? "opacity-100 z-50 pointer-events-auto"
+            : "opacity-0 -z-5 pointer-events-none"
+        } overflow-y-auto`}
+      >
+        <div
+          className={`flex justify-center items-center w-full h-full transition-all duration-500 transform ${
+            showModal
+              ? "translate-y-0 opacity-100"
+              : "translate-y-[-1000px] opacity-0"
+          }`}
+        >
+          <Modal setShowModal={setShowModal} />
         </div>
+      </div>
       <div>
         <Card style="bg-[#636AE8FF] shadow-sm">
           <div className="px-4 py-4 relative">
@@ -143,7 +155,7 @@ const Home = ({showModal, setShowModal}: PropeType) => {
                     return (
                       <div
                         key={index}
-                        className="flex justify-between items-center py-2 text-sm"
+                        className="flex justify-between items-center py-2 text-sm cursor-pointer"
                       >
                         <div>
                           <h4 className="font-semibold text-left">
@@ -162,6 +174,91 @@ const Home = ({showModal, setShowModal}: PropeType) => {
             </Card>
           );
         })}
+      </div>
+      <div className="py-4 my-2 w-full">
+        <Card style="bg-white shadow-sm px-2 w-full">
+          <>
+            <div className="flex justify-between items-center py-2 mx-2 border-b-1 border-gray-100">
+              <h1 className="text-xl">Expense</h1>
+              <div onClick={() => setShowModal(false)}>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth="1.5"
+                  stroke="currentColor"
+                  className="size-5 cursor-pointer"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6 18 18 6M6 6l12 12"
+                  />
+                </svg>
+              </div>
+            </div>
+            <div className="py-2">
+              <form>
+                <div className="flex justify-start items-center">
+                  <h6 className="text-left font-semibold text-base my-1 mx-2 inline-block">
+                    Title:
+                  </h6>
+                  <p className="text-base">Buy new phone</p>
+                </div>
+                <div className="flex justify-start items-center">
+                  <h6 className="text-left font-semibold text-base my-1 mx-2 inline-block">
+                    Type:
+                  </h6>
+                  <p className="text-base">Liablility</p>
+                </div>
+                <div className="flex justify-start items-center">
+                  <h6 className="text-left font-semibold text-base my-1 mx-2 inline-block">
+                    Payment:
+                  </h6>
+                  <p className="text-base">Card</p>
+                </div>
+                <div className="flex justify-start items-center">
+                  <h6 className="text-left font-semibold text-base my-1 mx-2 inline-block">
+                    Amount:
+                  </h6>
+                  <p className="text-base">1290</p>
+                </div>
+                <div className="flex justify-start items-center">
+                  <h6 className="text-left font-semibold text-base my-1 mx-2 inline-block">
+                    Category:
+                  </h6>
+                  <p className="text-base">Electronics</p>
+                </div>
+                <div className="flex justify-start items-center">
+                  <h6 className="text-left font-semibold text-base my-1 mx-2 inline-block">
+                    Sub-Category:
+                  </h6>
+                  <p className="text-base">Phone</p>
+                </div>
+                <div className="flex justify-start items-center">
+                  <h6 className="text-left font-semibold text-base my-1 mx-2 inline-block">
+                    Date:
+                  </h6>
+                  <p className="text-base">12/06/2025</p>
+                </div>
+                <div className="my-5">
+                  <button
+                    className="text-white bg-[#636AE8FF] rounded-md outline-none border-0 py-1 px-5 cursor-pointer mx-2"
+                    onClick={() => setShowModal(false)}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="text-white bg-[#636AE8FF] rounded-md outline-none border-0 py-1 px-5 cursor-pointer mx-2"
+                    onClick={() => setShowModal(false)}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </form>
+            </div>
+          </>
+        </Card>
       </div>
     </>
   );

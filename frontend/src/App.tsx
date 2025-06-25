@@ -5,8 +5,9 @@ import { useState } from "react";
 import "./App.css";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-import UserSettings from "./pages/UserSettings";
-// import Home from "./pages/Home";
+// import UserSettings from "./pages/UserSettings";
+// import ChangeUserDetail from "./pages/ChangeUserDetail";
+import Home from "./pages/Home";
 //import SendOTP from "./auth/sendOTP";
 
 function App() {
@@ -23,8 +24,9 @@ function App() {
       {/* <Login />  */}
       {/* <Signup /> */}
       <Navbar />
-      {/* <Home setShowModal={setShowModal} showModal={showModal} /> */}
-      <UserSettings />
+      <Home setShowModal={setShowModal} showModal={showModal} />
+      {/* <UserSettings /> */}
+      {/* <ChangeUserDetail /> */}
       <Footer setShowModal={setShowModal}/>
     </>
   );
