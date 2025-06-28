@@ -22,6 +22,8 @@ const Login = () => {
         description="to continue to FinFlow"
         buttonText="Login"
         buttonStyle="w-auto"
+        navigationLink="signup"
+        buttonNavigation=""
       >
         <div className="w-full md:basis-1/2">
           <div className="w-full px-4 py-2 bg-[#F3F4F6FF] flex items-center rounded-2xl mb-3">
@@ -91,6 +93,7 @@ const Login = () => {
                   type="password"
                   placeholder="Password"
                   className="w-full px-2 bg-transparent border-0 outline-none text-base"
+                  name="password"
                 />
                 <svg
                   xmlns="http://www.w3.org/2000/svg"

@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import finflowLogo from "../assets/finflowlogo.webp";
 import ImageComponent from "./ImageComponent";
 
@@ -10,17 +11,19 @@ const Navbar = () => {
             <img src={finflowLogo} alt="finflow Logo" className="w-full" />
           </div>
           <div className="hidden sm:flex items-center gap-2 w-full">
-            <a href="/" className="mx-3">
+            <Link to="/" className="mx-3">
               Home
-            </a>
-            <a href="/" className="mx-3">
+            </Link>
+            <Link to="/reports" className="mx-3">
               Report
-            </a>
-            <a href="/" className="mx-3">
+            </Link>
+            <Link to="/" className="mx-3">
               Setup
-            </a>
+            </Link>
             <div className="ms-auto">
-              <ImageComponent />
+              <Link to="/user-settings">
+                <ImageComponent />
+              </Link>
             </div>
           </div>
         </nav>

@@ -1,5 +1,6 @@
-// import React from "react";
-import clsx from "clsx"
+import { useNavigate } from "react-router-dom";
+import { MouseEvent } from "react";
+import clsx from "clsx";
 
 const settingList = [
   {
@@ -21,6 +22,16 @@ const settingList = [
 ];
 
 const UserSettings = () => {
+  const navigate = useNavigate();
+
+  //This function is used to navigate between user settings pages.
+  const handleNavigation = (event: MouseEvent) => {
+    //grabing the child element i.e <p>
+    const childElement = event.currentTarget.children[1];
+    // getting the id of the element which is used to navigate between user settings. The id is same as the url
+    const navigateElement = childElement.id;
+    navigate(`${navigateElement}`);
+  };
 
   return (
     <div>
@@ -53,7 +64,11 @@ const UserSettings = () => {
           return (
             <div
               key={index}
-              className={clsx("border-b-1 border-gray-400 p-4 flex items-center cursor-pointer", index === 0 ? "border-t": "border-t-0")}
+              className={clsx(
+                "border-b-1 border-gray-400 p-4 flex items-center cursor-pointer",
+                index === 0 ? "border-t" : "border-t-0"
+              )}
+              onClick={handleNavigation}
             >
               <div>
                 <svg
@@ -71,7 +86,12 @@ const UserSettings = () => {
                   />
                 </svg>
               </div>
-              <p className="px-2">{setting.setting}</p>
+              <p
+                className="px-2"
+                id={`${setting.setting.replace(/\s+/g, "-").toLowerCase()}`} // replacing all the white space present in the text to - and changing the text in lower case.
+              >
+                {setting.setting}
+              </p>
             </div>
           );
         })}
