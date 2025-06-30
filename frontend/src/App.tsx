@@ -2,6 +2,7 @@ import { useState } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import "./App.css";
+import { FormProvider } from "./context/FormContext";
 import Login from "./auth/Login";
 import SignUp from "./auth/signup";
 import Navbar from "./components/Navbar";
@@ -69,7 +70,9 @@ function App() {
   return (
     <>
       {/* <Navbar /> */}
-      <RouterProvider router={router} />
+      <FormProvider>
+        <RouterProvider router={router} />
+      </FormProvider>
     </>
   );
 }

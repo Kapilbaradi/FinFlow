@@ -1,20 +1,17 @@
-import { useState, FormEvent } from "react";
+import { useEffect, useState } from "react";
+
+import { useForm } from "../context/FormContext";
 import AuthWrapper from "./AuthWrapper";
 const Login = () => {
+  const { newError } = useForm();
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [error, setError] = useState(newError);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    // getting the formdata which has triggred onsubmit event.
-    const formData = new FormData(event.currentTarget);
-    //getting formdata of inputs based on their names.
-    const email = formData.get("email");
-    const password = formData.get("password");
-
-    if (!email || !password) {
-      return;
-    }
+  const handleError = (formError: Record<string, string | null>) => {
+    setError(formError);
+    console.log('handleError '+ error.email)
   };
+  
   return (
     <>
       <AuthWrapper
@@ -24,6 +21,7 @@ const Login = () => {
         buttonStyle="w-auto"
         navigationLink="signup"
         buttonNavigation=""
+        handleError = {handleError}
       >
         <div className="w-full md:basis-1/2">
           <div className="w-full px-4 py-2 bg-[#F3F4F6FF] flex items-center rounded-2xl mb-3">
@@ -48,6 +46,7 @@ const Login = () => {
               name="email"
             />
           </div>
+          {error.email && <p>{error.email}</p>}
           <div className="w-full px-4 py-2 bg-[#F3F4F6FF] flex items-center rounded-2xl">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -118,7 +117,7 @@ const Login = () => {
               </>
             )}
           </div>
-
+          {error.password && <p>{error.password}</p>}
           {/* <p className="text-green-600 text-sm font-semibold">
             Great job! Your password is strong.
           </p> */}

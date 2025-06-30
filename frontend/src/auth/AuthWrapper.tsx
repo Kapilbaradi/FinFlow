@@ -2,6 +2,7 @@ import { FormEvent, JSX } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
 import finflowlogo from "../assets/finflowlogo.webp";
+import { useForm } from "../context/FormContext";
 
 interface WrapperPropeType {
   children: JSX.Element;
@@ -11,7 +12,12 @@ interface WrapperPropeType {
   buttonStyle?: string;
   navigationLink: string;
   buttonNavigation: string;
+  handleError: (formError: Record<string, string | null>) => void
 }
+
+// useEffect(() => {
+
+// })
 
 function AuthWrapper({
   children,
@@ -21,31 +27,41 @@ function AuthWrapper({
   buttonStyle,
   navigationLink,
   buttonNavigation,
+  handleError
 }: WrapperPropeType) {
   const navigator = useNavigate();
+  const { setFormData, registor, validateOnSubmit } = useForm();
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
     const form = new FormData(event.currentTarget);
 
     //converting FormData array into object key value pair. entries() contains the [name, value] of input as key value pair as array.
-    const data = Object.fromEntries(form.entries());
+    const formData = Object.fromEntries(form.entries());
+    const validate = {
+      email: function (email: string) {
+        return email &&
+          /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)
+          ? null
+          : "Please enter proper email";
+      },
+      password: function (password: string) {
+        return password && `${password}`.length < 8
+          ? null
+          : "Password should be atleast of 8 charecters";
+      },
+    };
+    console.log("clicked");
+    console.log(`${formData.password}`.length)
+    setFormData(formData);
+    registor(validate);
 
-    if (!data.email) {
-      console.log("Please enter your email address");
-      return;
+    const { isValid, error } = validateOnSubmit();
+    if (!isValid) {
+      console.log(error);
+      console.log("validate " + isValid);
+      handleError(error)
     }
-    if (!data.password || `${data.password}`.length < 8) {
-      console.log("Password should contain atleast 8 charecters");
-      return;
-    }
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    const isValidEmail = emailRegex.test(`${data.email}`);
-    if (!isValidEmail) {
-      console.log("Please enter valid email");
-      return;
-    }
-
-    console.log("Validation completed");
   };
   return (
     <div className="lg:min-h-screen sm:flex xl:flex-row items-center justify-center bg-white p-4 sm:py-8">

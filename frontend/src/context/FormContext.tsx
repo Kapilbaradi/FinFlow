@@ -1,36 +1,76 @@
-import { createContext, FormEvent, useContext, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  ReactNode,
+} from "react";
 
-const FromContext = createContext<unknown>(null);
+interface DataType {
+  email: string;
+  password: string;
+}
 
-export const formProvider = ({ children, formData, onSubmit }) => {
-  const [data, setDate] = useState({ formData });
+interface ValidateOnSubmitReturnType {
+  isValid: boolean;
+  error: Record<string, string | null>;
+}
+
+interface ContextType {
+  data: DataType;
+  newError: Record<string, string | null>;
+  setFormData: (formData: DataType) => void;
+  registor: (validators: Record<string, (val: any) => string | null>) => void;
+  validateOnSubmit: () => ValidateOnSubmitReturnType;
+}
+
+const FromContext = createContext<ContextType | null>(null);
+
+export const FormProvider = ({ children }) => {
+  const [data, setDate] = useState({} as DataType);
   const [validator, setValidator] = useState({});
-  const [error, setError] = useState({});
+  const [error, setError] = useState<Record<string, string | null>>({});
 
-  const registor = (name, validateFn) => {
-    setValidator({ ...validator, [name]: validateFn });
-  };
+  const setFormData = useCallback((formData: DataType) => {
+    setDate(formData);
+    console.log(formData);
+  }, []);
 
-  const validateOnSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const registor = useCallback(
+    (validation: Record<string, (val: any) => string | null>) => {
+      setValidator(validation);
+    },
+    []
+  );
 
-    const newError = {};
-    Object.entries(validator).forEach(([name, vFn]) => {
-      const error = vFn(data[name]);
+  let newError: Record<string, string | null> = {};
+  const validateOnSubmit = useCallback(() => {
+    newError = {};
+    Object.entries(validator).forEach(([name, validateFn]) => {
+      // const fieldValidator: funType = {name, validateFn}
+      const error = (validateFn as (val: any) => string | null)(
+        data[name as keyof DataType]
+      );
+
       if (error) newError[name] = error;
     });
-    setError(newError);
-    // if (Object.keys(newError).length === 0) {
-    //   onSubmit(data);
-    //   setDate({});
-    // }
-  };
+    // setError(newError);
+    return { isValid: Object.keys(newError).length === 0, error: newError };
+  }, [data, validator]);
 
   return (
-    <FromContext.Provider value={{ data, error, registor, validateOnSubmit }}>
+    <FromContext.Provider
+      value={{ data, newError, setFormData, registor, validateOnSubmit }}
+    >
       {children}
     </FromContext.Provider>
   );
 };
 
-export const useForm = () => useContext(FromContext);
+export const useForm = () => {
+  const context = useContext(FromContext);
+  if (!context) {
+    throw new Error("Context needed");
+  }
+  return context;
+};
