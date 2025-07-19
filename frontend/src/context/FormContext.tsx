@@ -1,14 +1,14 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useCallback,
-  ReactNode,
-} from "react";
+import { createContext, ReactNode, useContext } from "react";
+
+interface FromContextChildrenType {
+  children: ReactNode;
+}
 
 interface DataType {
   email: string;
   password: string;
+  username?: string;
+  confirmPassword?: string;
 }
 
 interface ValidateOnSubmitReturnType {
@@ -17,51 +17,43 @@ interface ValidateOnSubmitReturnType {
 }
 
 interface ContextType {
-  data: DataType;
-  newError: Record<string, string | null>;
-  setFormData: (formData: DataType) => void;
-  registor: (validators: Record<string, (val: any) => string | null>) => void;
-  validateOnSubmit: () => ValidateOnSubmitReturnType;
+  validateOnSubmit: (
+    overrideData: DataType,
+    validator: Record<string, (val: any) => string | null>
+  ) => ValidateOnSubmitReturnType;
 }
 
 const FromContext = createContext<ContextType | null>(null);
 
-export const FormProvider = ({ children }) => {
-  const [data, setDate] = useState({} as DataType);
-  const [validator, setValidator] = useState({});
-  const [error, setError] = useState<Record<string, string | null>>({});
-
-  const setFormData = useCallback((formData: DataType) => {
-    setDate(formData);
-    console.log(formData);
-  }, []);
-
-  const registor = useCallback(
-    (validation: Record<string, (val: any) => string | null>) => {
-      setValidator(validation);
-    },
-    []
-  );
-
-  let newError: Record<string, string | null> = {};
-  const validateOnSubmit = useCallback(() => {
-    newError = {};
+export const FormProvider = ({ children }: FromContextChildrenType) => {
+  const validateOnSubmit = (
+    overrideData: DataType,
+    validator: Record<string, (val: any) => string | null>
+  ) => {
+    const data = overrideData;
+    const newError: Record<string, string | null> = {};
     Object.entries(validator).forEach(([name, validateFn]) => {
-      // const fieldValidator: funType = {name, validateFn}
-      const error = (validateFn as (val: any) => string | null)(
-        data[name as keyof DataType]
-      );
+      let error;
+      if (name == "confirmPassword") {
+        // In validateOnSubmit(formData, validate), you pass all form fields including password and confirmPassword but it will not receive the password field — and therefore, will always fail the comparison: That's we are using if else explicitly passing password as parameter.
+        error = (validateFn as (val: any, val2: any) => string | null)(
+          data[name as keyof DataType],
+          data["password"]
+        );
+      } else {
+        error = (validateFn as (val: any) => string | null)(
+          data[name as keyof DataType]
+        );
+      }
 
       if (error) newError[name] = error;
     });
-    // setError(newError);
+
     return { isValid: Object.keys(newError).length === 0, error: newError };
-  }, [data, validator]);
+  };
 
   return (
-    <FromContext.Provider
-      value={{ data, newError, setFormData, registor, validateOnSubmit }}
-    >
+    <FromContext.Provider value={{ validateOnSubmit }}>
       {children}
     </FromContext.Provider>
   );

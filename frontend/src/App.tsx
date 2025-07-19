@@ -2,9 +2,10 @@ import { useState } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import "./App.css";
+import { AuthProvider } from "./context/AuthContext";
 import { FormProvider } from "./context/FormContext";
 import Login from "./auth/Login";
-import SignUp from "./auth/signup";
+// import SignUp from "./auth/signup";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
@@ -12,11 +13,12 @@ import Reports from "./pages/Reports";
 import UserSettings from "./pages/UserSettings";
 import ChangeUserDetail from "./pages/ChangeUserDetail";
 import NotFound from "./pages/NotFound";
+import CreateAccount from "./auth/CreateAccount";
 //import SendOTP from "./auth/sendOTP";
 
 const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
-  { path: "/signup", element: <SignUp /> },
+  { path: "/signup", element: <CreateAccount /> },
   {
     path: "/",
     element: (
@@ -70,9 +72,11 @@ function App() {
   return (
     <>
       {/* <Navbar /> */}
-      <FormProvider>
-        <RouterProvider router={router} />
-      </FormProvider>
+      <AuthProvider>
+        <FormProvider>
+          <RouterProvider router={router} />
+        </FormProvider>
+      </AuthProvider>
     </>
   );
 }

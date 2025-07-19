@@ -1,9 +1,22 @@
 import { FormEvent, JSX } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 
 import finflowlogo from "../assets/finflowlogo.webp";
 import { useForm } from "../context/FormContext";
+import { useAuth } from "../context/AuthContext";
 
+interface ValidateLoginPropeType {
+  email: (email: string) => string | null;
+  password: (password: string) => string | null;
+}
+
+interface ValidateSignUPProp extends ValidateLoginPropeType {
+  username: (username: string) => string | null;
+  confirmPassword: (
+    confirmPassword: string,
+    password: string
+  ) => string | string | null;
+}
 interface WrapperPropeType {
   children: JSX.Element;
   buttonText: string;
@@ -11,13 +24,22 @@ interface WrapperPropeType {
   description: string;
   buttonStyle?: string;
   navigationLink: string;
+  navigationText: string;
   buttonNavigation: string;
-  handleError: (formError: Record<string, string | null>) => void
+  validate: ValidateLoginPropeType | ValidateSignUPProp;
+  handleError: (formError: Record<string, string | null>) => void;
 }
 
-// useEffect(() => {
+interface LoginDataType {
+  email: string;
+  password: string;
+}
 
-// })
+interface SignUpDataType extends LoginDataType {
+  username: string;
+  confirmPassword: string;
+  profilePic: File;
+}
 
 function AuthWrapper({
   children,
@@ -26,43 +48,57 @@ function AuthWrapper({
   buttonText,
   buttonStyle,
   navigationLink,
+  navigationText,
   buttonNavigation,
-  handleError
+  validate,
+  handleError,
 }: WrapperPropeType) {
   const navigator = useNavigate();
-  const { setFormData, registor, validateOnSubmit } = useForm();
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const { validateOnSubmit } = useForm();
+  const { login } = useAuth();
+  const location = useLocation();
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
+    const pathname = location.pathname;
     const form = new FormData(event.currentTarget);
 
     //converting FormData array into object key value pair. entries() contains the [name, value] of input as key value pair as array.
     const formData = Object.fromEntries(form.entries());
-    const validate = {
-      email: function (email: string) {
-        return email &&
-          /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)
-          ? null
-          : "Please enter proper email";
-      },
-      password: function (password: string) {
-        return password && `${password}`.length < 8
-          ? null
-          : "Password should be atleast of 8 charecters";
-      },
-    };
-    console.log("clicked");
-    console.log(`${formData.password}`.length)
-    setFormData(formData);
-    registor(validate);
 
-    const { isValid, error } = validateOnSubmit();
+    const { isValid, error } = validateOnSubmit(formData, validate);
+    console.log(location.pathname);
     if (!isValid) {
-      console.log(error);
-      console.log("validate " + isValid);
-      handleError(error)
+      handleError(error);
+      return;
+    }
+    if (pathname == "/login") {
+      const loginData: LoginDataType = {
+        email: formData["email"] as string,
+        password: formData["password"] as string,
+      };
+      const { success, message, token } = await login(loginData);
+      if (success && token) {
+        localStorage.setItem("authtoken", token);
+        navigator(buttonNavigation);
+      } else {
+        const error = {
+          email: message as string,
+          password: message as string,
+        };
+        handleError(error);
+      }
+    } else {
+      const emailData: SignUpDataType = {
+        email: formData["email"] as string,
+        password: formData["password"] as string,
+        username: formData["username"] as string,
+        profilePic: formData["profilePic"] as File,
+      };
     }
   };
+
   return (
     <div className="lg:min-h-screen sm:flex xl:flex-row items-center justify-center bg-white p-4 sm:py-8">
       <div className="w-full bg-white p-2 rounded-2xl sm:p-6 sm:shadow-md sm:inset-shadow-md sm:py-[48px] sm:w-[500px] md:w-[700px] xl:w-[1100px] sm:h-full flex items-center">
@@ -89,7 +125,7 @@ function AuthWrapper({
                   to={`/${navigationLink}`}
                   className="text-[#636AE8FF] p-3 hover:bg-[#636AE808] hover:rounded-full"
                 >
-                  Create Account
+                  {navigationText}
                 </Link>
               </p>
               {/* </div> */}
