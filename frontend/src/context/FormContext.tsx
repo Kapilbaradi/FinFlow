@@ -1,27 +1,10 @@
-import { createContext, ReactNode, useContext } from "react";
+import { createContext, useContext } from "react";
 
-interface FromContextChildrenType {
-  children: ReactNode;
-}
-
-interface DataType {
-  email: string;
-  password: string;
-  username?: string;
-  confirmPassword?: string;
-}
-
-interface ValidateOnSubmitReturnType {
-  isValid: boolean;
-  error: Record<string, string | null>;
-}
-
-interface ContextType {
-  validateOnSubmit: (
-    overrideData: DataType,
-    validator: Record<string, (val: any) => string | null>
-  ) => ValidateOnSubmitReturnType;
-}
+import {
+  FromContextChildrenType,
+  DataType,
+  ContextType,
+} from "../types/contextTypes/FormContextTypes";
 
 const FromContext = createContext<ContextType | null>(null);
 

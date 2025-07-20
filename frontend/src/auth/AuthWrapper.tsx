@@ -1,45 +1,15 @@
-import { FormEvent, JSX } from "react";
+import { FormEvent } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 
+import {
+  WrapperPropeType,
+  LoginDataType,
+  SignUpDataType,
+  ErrorTypes,
+} from "../types/authTypes.ts/AuthWrapperTypes";
 import finflowlogo from "../assets/finflowlogo.webp";
 import { useForm } from "../context/FormContext";
 import { useAuth } from "../context/AuthContext";
-
-interface ValidateLoginPropeType {
-  email: (email: string) => string | null;
-  password: (password: string) => string | null;
-}
-
-interface ValidateSignUPProp extends ValidateLoginPropeType {
-  username: (username: string) => string | null;
-  confirmPassword: (
-    confirmPassword: string,
-    password: string
-  ) => string | string | null;
-}
-interface WrapperPropeType {
-  children: JSX.Element;
-  buttonText: string;
-  header: string;
-  description: string;
-  buttonStyle?: string;
-  navigationLink: string;
-  navigationText: string;
-  buttonNavigation: string;
-  validate: ValidateLoginPropeType | ValidateSignUPProp;
-  handleError: (formError: Record<string, string | null>) => void;
-}
-
-interface LoginDataType {
-  email: string;
-  password: string;
-}
-
-interface SignUpDataType extends LoginDataType {
-  username: string;
-  confirmPassword: string;
-  profilePic: File;
-}
 
 function AuthWrapper({
   children,
@@ -55,47 +25,66 @@ function AuthWrapper({
 }: WrapperPropeType) {
   const navigator = useNavigate();
   const { validateOnSubmit } = useForm();
-  const { login } = useAuth();
+  const { login, signup } = useAuth();
   const location = useLocation();
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const pathname = location.pathname;
-    const form = new FormData(event.currentTarget);
+    const form = new FormData(event.currentTarget); // getting form data
 
     //converting FormData array into object key value pair. entries() contains the [name, value] of input as key value pair as array.
     const formData = Object.fromEntries(form.entries());
 
-    const { isValid, error } = validateOnSubmit(formData, validate);
-    console.log(location.pathname);
-    if (!isValid) {
-      handleError(error);
-      return;
-    }
-    if (pathname == "/login") {
-      const loginData: LoginDataType = {
-        email: formData["email"] as string,
-        password: formData["password"] as string,
-      };
-      const { success, message, token } = await login(loginData);
+    // This method take signup, login fun as parameter and data as a paremeter and send to context api where data is send to server.
+    const sendData = async (fun, data: LoginDataType | SignUpDataType) => {
+      const { success, message, token } = await fun(data);
+
+      // If success then generated authotoken will be stored in localstorage and navigated to home page.
       if (success && token) {
         localStorage.setItem("authtoken", token);
         navigator(buttonNavigation);
       } else {
-        const error = {
+        // if success failed then error message is sent to ui. These message is sent from server.
+        const error: ErrorTypes = {
           email: message as string,
           password: message as string,
         };
+        if (pathname == "/signup") {
+          error.confirmPassword = message as string;
+          error.username = message as string;
+        }
+
+        // This method is present in login and createAccount page. Sets the error.
         handleError(error);
       }
+    };
+
+    // validateOnSubmit validates input as returns true if input is correct else return the error message which is present in validate object that is sent from the login or createAccountPage.
+    const { isValid, error } = validateOnSubmit(formData, validate);
+    console.log(location.pathname);
+    if (!isValid) {
+      // This method is present in login and createAccount page. Sets the error.
+      handleError(error);
+      return;
+    }
+
+    //making login data match the type of the context login data.
+    const loginData: LoginDataType = {
+      email: formData["email"] as string,
+      password: formData["password"] as string,
+    };
+    if (pathname == "/login") {
+      sendData(login, loginData);
     } else {
-      const emailData: SignUpDataType = {
-        email: formData["email"] as string,
-        password: formData["password"] as string,
+      //making signup data match the type of the context signup data.
+      const signUpData: SignUpDataType = {
+        ...loginData,
         username: formData["username"] as string,
         profilePic: formData["profilePic"] as File,
       };
+      sendData(signup, signUpData);
     }
   };
 

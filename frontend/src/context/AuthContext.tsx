@@ -1,46 +1,19 @@
-import { createContext, ReactNode, useContext, useState } from "react";
+import { createContext, useContext, useState } from "react";
 
+import {
+  AuthContextChildrenType,
+  LoginContextDataType,
+  UserInfoType,
+  AuthContextType,
+} from "../types/contextTypes/AuthContextTypes";
 import { LOGIN_URL, SIGNUP_URL } from "../routes/UserRoutes";
-
-interface AuthContextChildrenType {
-  children: ReactNode;
-}
-
-interface AuthContextType {
-  user: UserInfoType;
-  login: (userCredentials: LoginDataType) => Promise<
-    | {
-        success: boolean;
-        token: string;
-        message?: undefined;
-      }
-    | {
-        success: boolean;
-        message: string;
-        token?: undefined;
-      }
-  >;
-}
-
-interface LoginDataType {
-  email: string;
-  password: string;
-}
-
-interface UserInfoType {
-  username: string;
-  email: string;
-  password: string;
-  profilePic: File;
-  // profilePicId: string;
-}
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: AuthContextChildrenType) => {
   const [user, setUser] = useState<UserInfoType>({} as UserInfoType);
 
-  const login = async (userCredentials: LoginDataType) => {
+  const login = async (userCredentials: LoginContextDataType) => {
     const response = await fetch(LOGIN_URL, {
       method: "POST",
       headers: {
@@ -61,16 +34,17 @@ export const AuthProvider = ({ children }: AuthContextChildrenType) => {
     }
   };
 
-  const signup = async () => {
+  const signup = async (userCredentials: UserInfoType) => {
     const response = await fetch(SIGNUP_URL, {
       method: "POST",
-      headers: {
-        "Content-type": "application/x-www-form-urlencoded"
-      },
-    })
-  }
+      body: userCredentials,
+    });
+    const data = await response.json();
+    console.log(data);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login }}>
+    <AuthContext.Provider value={{ user, login, signup }}>
       {children}
     </AuthContext.Provider>
   );
