@@ -99,7 +99,8 @@ export const login = catchAsyncError(async (req, res, next) => {
 });
 
 export const signup = catchAsyncError(async (req, res, next) => {
-  let { username, email, password } = req.body;
+  console.log(req.body.email)
+  let { email, password, username } = req.body;
 
   if (!username || !email || !password) {
     return next(new ErrorHandler(400, "Please fill all the fields"));

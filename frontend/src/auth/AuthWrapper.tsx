@@ -63,7 +63,6 @@ function AuthWrapper({
 
     // validateOnSubmit validates input as returns true if input is correct else return the error message which is present in validate object that is sent from the login or createAccountPage.
     const { isValid, error } = validateOnSubmit(formData, validate);
-    console.log(location.pathname);
     if (!isValid) {
       // This method is present in login and createAccount page. Sets the error.
       handleError(error);

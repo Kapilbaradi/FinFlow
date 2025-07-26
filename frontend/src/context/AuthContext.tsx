@@ -35,6 +35,7 @@ export const AuthProvider = ({ children }: AuthContextChildrenType) => {
   };
 
   const signup = async (userCredentials: UserInfoType) => {
+    console.log(userCredentials)
     const response = await fetch(SIGNUP_URL, {
       method: "POST",
       body: userCredentials,
