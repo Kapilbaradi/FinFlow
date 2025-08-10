@@ -9,6 +9,9 @@ dotenv.config();
 
 const fetchUser = catchAsyncError(async (req, res, next) => {
   const authToken = req.headers["authorization"];
+  if(!authToken) {
+    return next(new ErrorHandler(400, "Invalid User"));
+  }
 
   const token = authToken.split("Bearer ")[1];
   if (!token) {

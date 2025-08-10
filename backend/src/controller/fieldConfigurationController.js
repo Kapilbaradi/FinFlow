@@ -1,17 +1,22 @@
 import catchAsyncError from "../middleware/catchAsyncError.js";
 import ErrorHandler from "../utils/ErrorHandler.js";
 import FieldConfiguration from "../models/FieldConfigurationModel.js";
+import {
+  capitalizeFirstLetter,
+  normalizeString,
+} from "../utils/normalizeData.js";
+
+const verifyCategory = (category) => {
+  return /^[a-zA-Z]+$/.test(category);
+};
 
 // 1. Get all custom fields for current user
 const getFields = catchAsyncError(async (req, res, next) => {
-  const id = req.params.id;
-  const userId = req.body.user;
+  //const id = req.params.id;
 
-  if (id !== userId) {
-    return next(new ErrorHandler(400, "Invalid User"));
-  }
-  const config = await FieldConfiguration.findOne({ userId: id }).select([
-    "-_id",
+  const userId = req.user.id;
+
+  const config = await FieldConfiguration.findOne({ userId }).select([
     "-__v",
     "-createdAt",
   ]);
@@ -20,9 +25,22 @@ const getFields = catchAsyncError(async (req, res, next) => {
 
 // 2. Add a new custom field
 const addField = catchAsyncError(async (req, res, next) => {
-  const userId = req.body.user;
+  const userId = req.user.id;
 
-  const { fieldName, fieldType, required, options } = req.body;
+  const newFields = {};
+
+  if (req.body.fieldName) {
+    newFields.fieldName = req.body.fieldName;
+  }
+  if (req.body.fieldType) {
+    newFields.fieldType = req.body.fieldType;
+  }
+  if (req.body.required) {
+    newFields.required = req.body.required;
+  }
+  if (req.body.options) {
+    newFields.options = req.body.options;
+  }
 
   let config = await FieldConfiguration.findOne({ userId });
 
@@ -37,11 +55,13 @@ const addField = catchAsyncError(async (req, res, next) => {
   }
 
   // Check if field already exists
-  if (config.customFields.some((f) => f.fieldName === fieldName)) {
+  if (config.customFields.some((f) => f.fieldName === newFields.fieldName)) {
     return next(new ErrorHandler(400, "Field with this name already exists"));
   }
 
-  config.customFields.push({ fieldName, fieldType, required, options });
+  if (newFields.fieldName && newFields.fieldType) {
+    config.customFields.push(newFields);
+  }
   await config.save();
 
   res
@@ -79,12 +99,10 @@ const editField = catchAsyncError(async (req, res, next) => {
 
   await config.save();
 
-  res
-    .status(200)
-    .json({
-      message: "Field updated successfully",
-      fields: config.customFields,
-    });
+  res.status(200).json({
+    message: "Field updated successfully",
+    fields: config.customFields,
+  });
 });
 
 // 4. Delete a field
@@ -112,12 +130,99 @@ const deleteField = catchAsyncError(async (req, res, next) => {
   }
   await config.save();
 
-  res
-    .status(200)
-    .json({
-      message: "Field deleted successfully",
-      fields: config.customFields,
-    });
+  res.status(200).json({
+    message: "Field deleted successfully",
+    fields: config.customFields,
+  });
 });
 
-export { getFields, addField, editField, deleteField };
+const addCategories = catchAsyncError(async (req, res, next) => {
+  let { category } = req.body;
+  const id = req.params.id;
+  const userId = req.user.id;
+
+  if (!category) {
+    return next(new ErrorHandler(400, "Please enter a category"));
+  }
+
+  if (!verifyCategory(category)) {
+    return next(
+      new ErrorHandler(400, "Category should only contain alphabets")
+    );
+  }
+
+  let fields = await FieldConfiguration.findById(fieldsId);
+  if (!fields) {
+    return next(new ErrorHandler(404, "Unauthorized"));
+  }
+
+  if (fields.userId.toString() !== userId) {
+    return next(new ErrorHandler(400, "Unauthorized"));
+  }
+
+  category = normalizeString(category);
+
+  if (fields.categoryName.includes(category)) {
+    return next(new ErrorHandler(400, "Category already exists"));
+  }
+
+  fields = await FieldConfiguration.findByIdAndUpdate(
+    { _id: id },
+    { $push: { categoryName: category } },
+    { new: true }
+  );
+
+  res
+    .status(200)
+    .json({ success: true, message: "Category added successfully", fields });
+});
+
+const deleteCategories = catchAsyncError(async (req, res, next) => {
+  let { category } = req.body;
+  const id = req.params.id;
+  const userId = req.user.id;
+
+  if (!category) {
+    return next(new ErrorHandler(400, "Please Enter a Category"));
+  }
+
+  category = normalizeString(category);
+
+  if (!verifyCategory(category)) {
+    return next(
+      new ErrorHandler(400, "Category should only contain alphabets")
+    );
+  }
+
+  let fields = new FieldConfiguration.findById(id);
+  if (!fields) {
+    return next(new ErrorHandler(400, "Unauthorized"));
+  }
+
+  if (fields.userId.toString() !== userId) {
+    return next(new ErrorHandler(400, "Unauthorized"));
+  }
+
+  if (!fields.categoryName.includes(category)) {
+    return next(new ErrorHandler(400, "category dose not exists"));
+  }
+
+  fields = await FieldConfiguration.findByIdAndUpdate(
+    id,
+    { $pull: { categoryName: category } },
+    { new: true }
+  );
+
+  res
+    .status(200)
+    .json({ success: true, message: "Category deleted Successfully", fields });
+});
+
+export {
+  getFields,
+  addField,
+  editField,
+  deleteField,
+  addCategories,
+  deleteCategories,
+};

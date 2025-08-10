@@ -5,7 +5,6 @@ import "./App.css";
 import { AuthProvider } from "./context/AuthContext";
 import { FormProvider } from "./context/FormContext";
 import Login from "./auth/Login";
-// import SignUp from "./auth/signup";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
@@ -14,11 +13,13 @@ import UserSettings from "./pages/UserSettings";
 import ChangeUserDetail from "./pages/ChangeUserDetail";
 import NotFound from "./pages/NotFound";
 import CreateAccount from "./auth/CreateAccount";
-//import SendOTP from "./auth/sendOTP";
+import OTPVerify from "./auth/otpVerification";
+import { OTProvider } from "./context/OPTContext";
 
 const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
   { path: "/signup", element: <CreateAccount /> },
+  { path: "/verify-otp", element: <OTPVerify /> },
   {
     path: "/",
     element: (
@@ -73,9 +74,11 @@ function App() {
     <>
       {/* <Navbar /> */}
       <AuthProvider>
-        <FormProvider>
-          <RouterProvider router={router} />
-        </FormProvider>
+        <OTProvider>
+          <FormProvider>
+            <RouterProvider router={router} />
+          </FormProvider>
+        </OTProvider>
       </AuthProvider>
     </>
   );

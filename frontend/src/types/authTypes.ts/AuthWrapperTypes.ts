@@ -12,6 +12,10 @@ interface ValidateSignUPProp extends ValidateLoginPropeType {
     password: string
   ) => string | string | null;
 }
+
+interface VerfityOTPPropType {
+  otp: (otp: string) => string | null;
+}
 export interface WrapperPropeType {
   children: JSX.Element;
   buttonText: string;
@@ -21,7 +25,7 @@ export interface WrapperPropeType {
   navigationLink: string;
   navigationText: string;
   buttonNavigation: string;
-  validate: ValidateLoginPropeType | ValidateSignUPProp;
+  validate: ValidateLoginPropeType | ValidateSignUPProp | VerfityOTPPropType;
   handleError: (formError: Record<string, string | null>) => void;
 }
 
@@ -36,7 +40,7 @@ export interface SignUpDataType extends LoginDataType {
   profilePic: File;
 }
 
-export interface ErrorTypes{
+export interface ErrorTypes {
   email: string | null;
   password: string | null;
   confirmPassword?: string | null;

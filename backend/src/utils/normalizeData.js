@@ -5,5 +5,5 @@ export const capitalizeFirstLetter = (string) => {
 
 //removing whitespace from both sides of a string and converting it into lowercase.
 export const normalizeString = (string) => {
-  return string.toLowerCase().trim();
+  return string.trim().toLowerCase();
 };

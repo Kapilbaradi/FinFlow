@@ -10,6 +10,7 @@ import {
 import finflowlogo from "../assets/finflowlogo.webp";
 import { useForm } from "../context/FormContext";
 import { useAuth } from "../context/AuthContext";
+import { useOTPContext } from "../context/OPTContext";
 
 function AuthWrapper({
   children,
@@ -23,9 +24,11 @@ function AuthWrapper({
   validate,
   handleError,
 }: WrapperPropeType) {
+
   const navigator = useNavigate();
   const { validateOnSubmit } = useForm();
   const { login, signup } = useAuth();
+  const {signUPOTP, verifyOTP} = useOTPContext
   const location = useLocation();
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -83,6 +86,10 @@ function AuthWrapper({
         username: formData["username"] as string,
         profilePic: formData["profilePic"] as File,
       };
+
+      sessionStorage.setItem("signUpData", JSON.stringify(signUpData));
+
+      
       sendData(signup, signUpData);
     }
   };

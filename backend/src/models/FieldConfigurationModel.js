@@ -10,22 +10,19 @@ const fieldConfigurationSchema = new Schema(
     titleName: { type: String, required: true },
     expenseType: {
       type: [String],
-      required: true,
       unique: true,
-      default: ["Asset", "Expense"],
+      default: ["asset", "expense"],
     },
     paymentType: {
       type: [String],
-      default: ["UPI", "Cash", "Debit Card", "Credit Card"],
+      default: ["upi", "cash", "debit Card", "credit Card"],
       unique: true,
-      required: true,
     },
 
     amountName: { type: String, required: true },
     categoryName: {
       type: [String],
-      default: ["Food", "Shopping", "Groceries", "Transportation"],
-      required: true,
+      default: ["food", "shopping", "groceries", "transportation"],
       unique: true,
     },
     subCategoryName: [

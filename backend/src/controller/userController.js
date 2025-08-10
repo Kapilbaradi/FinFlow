@@ -10,7 +10,10 @@ import {
 } from "../utils/normalizeData.js";
 import User from "../models/UserSchema.js";
 import OTP from "../models/OTPModel.js";
-import { uploadOnCloudinary } from "../utils/Cloudinary.js";
+import {
+  uploadOnCloudinary,
+  updateFileOnCloudinary,
+} from "../utils/Cloudinary.js";
 
 dotenv.config(); // reads the env file and parse the content and loads it into process.env
 
@@ -39,8 +42,8 @@ const setUser = (userInfo) => {
     username: capitalizeFirstLetter(userInfo.username),
     email: userInfo.email,
     profilePicPath: userInfo.profilePic
-      ? `https://res.cloudinary.com/djppjdulx/image/upload/v1747556794/defaultUser_bvigjn.png`
-      : `http://localhost:5000/uploads/defaultUser.png`,
+      ? userInfo.profilePic
+      : `https://res.cloudinary.com/djppjdulx/image/upload/v1747556794/defaultUser_bvigjn.png`,
   };
 
   return user;
@@ -99,13 +102,12 @@ export const login = catchAsyncError(async (req, res, next) => {
 });
 
 export const signup = catchAsyncError(async (req, res, next) => {
-  console.log(req.body.email)
+  console.log(req.body.email);
   let { email, password, username } = req.body;
 
   if (!username || !email || !password) {
     return next(new ErrorHandler(400, "Please fill all the fields"));
   }
-  console.log("SignUP");
 
   // Normalize the string by trimming spaces and converting to lowercase, ensuring consistent storage even if users input mixed-case data or extra spaces.
   email = normalizeString(email);
@@ -137,15 +139,11 @@ export const signup = catchAsyncError(async (req, res, next) => {
   const response = await OTP.findOne({ email })
     .sort({ createdAt: -1 })
     .limit(1);
-  console.log(response);
   if (response === null || !response.isVerified) {
     return next(new ErrorHandler(400, "Please verify your email"));
   }
 
-  //Secure password
-  const salt = await bcrypt.genSalt(10);
-  let hashPassword = await bcrypt.hash(password, salt);
-  const query = { username, email, password: hashPassword };
+  const query = { username, email, password };
 
   if (req.file) {
     const uploadResult = await uploadOnCloudinary(req.file.path);
@@ -157,6 +155,8 @@ export const signup = catchAsyncError(async (req, res, next) => {
 
   const token = generateAuthToken(user);
   user = setUser(user);
+
+  await OTP.updateMany({ email }, { $set: { isVerified: false } });
 
   res.status(201).json({ success: true, token, user });
 });
@@ -181,7 +181,7 @@ export const getUser = catchAsyncError(async (req, res, next) => {
 
 // this controller contains forget password logic. It send otp to email for vertification and once verified user can reset there password.
 export const forgetPassword = catchAsyncError(async (req, res, next) => {
-  const { email, newPassword } = req.body;
+  let { email, newPassword } = req.body;
 
   if (!email || !newPassword) {
     return next(new ErrorHandler(400, "Please enter your email"));
@@ -213,24 +213,20 @@ export const forgetPassword = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler(400, "Please verify your email first"));
   }
 
-  const salt = await bcrypt.genSalt(10);
-  const hashPassword = await bcrypt.hash(newPassword, salt);
-
   user = await User.findOne(
     { email },
-    { password: hashPassword },
+    { password: newPassword },
     { new: true }
   );
 
   const token = generateAuthToken(user);
 
-  user = setUser(user);
+  await OTP.updateMany({ email }, { $set: { isVerified: false } });
 
   res.json({
     success: true,
     message: "Password has been reset succesfully",
     token,
-    user,
   });
 });
 
@@ -309,6 +305,8 @@ export const updateEmail = catchAsyncError(async (req, res, next) => {
 
   user = setUser(user);
 
+  await OTP.updateMany({ email }, { $set: { isVerified: false } });
+
   res
     .status(200)
     .json({ success: true, message: "Username updated successfully", token });
@@ -339,20 +337,9 @@ export const resetPassword = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler(400, "User doesn't exists"));
   }
 
-  const otp = await OTP.findOne({ email })
-    .sort({ createdAt: -1 })
-    .limit(1)
-    .select("isVerified");
-  if (!otp.isVerified) {
-    return next(new ErrorHandler(400, "Please verify your email first"));
-  }
-
-  const salt = await bcrypt.genSalt(10);
-  const hashPassword = await bcrypt.hash(newPassword, salt);
-
   user = await User.findByIdAndUpdate(
     id,
-    { $set: { password: hashPassword } },
+    { $set: { password: password } },
     { new: true }
   );
 
@@ -364,6 +351,7 @@ export const resetPassword = catchAsyncError(async (req, res, next) => {
     success: true,
     message: "Password has been reset succesfully",
     token,
+    user,
   });
 });
 
@@ -371,7 +359,8 @@ export const updateProfilePic = catchAsyncError(async (req, res, next) => {
   const id = req.params.id;
   const userId = req.user.id;
 
-  const photoBase64 = req.file ? req.file.buffer.toString("base64") : null;
+  if (!req.file)
+    return next(new ErrorHandler(400, "Please Upload your profile pic"));
 
   let user = await User.findById(id);
   if (!user) {
@@ -382,13 +371,18 @@ export const updateProfilePic = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler(400, "Invalid User"));
   }
 
+  const uploadResult = await updateFileOnCloudinary(
+    req.file.path,
+    user.profilePicId
+  );
+  const profilePic = uploadResult.secure_url;
+  const profilePicId = uploadResult.public_Id;
+
   user = await User.findByIdAndUpdate(
     id,
-    { $set: { profilePic: photoBase64 } },
+    { $set: { profilePic: profilePic, profilePicId: profilePicId } },
     { new: true }
   );
-
-  const token = generateAuthToken(user);
 
   user = setUser(user);
 

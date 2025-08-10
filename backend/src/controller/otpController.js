@@ -47,7 +47,7 @@ export const otpForSignUp = catchAsyncError(async (req, res, next) => {
 
   console.log(otp);
 
-  const createOTP = await OTP.create({ email, otp, isVerified: false });
+  const createOTP = await OTP.create({ email, otp });
 
   res
     .status(200)
@@ -71,7 +71,7 @@ export const sendOTP = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler(400, "Please enter correct email id"));
   }
 
-  const otp = mailOTP(email, "Password reset request");
+  const otp = await mailOTP(email, "Password reset request");
 
   if (!otp || otp == null) {
     return next(new ErrorHandler(400, otp));

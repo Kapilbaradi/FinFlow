@@ -38,6 +38,9 @@ export const AuthProvider = ({ children }: AuthContextChildrenType) => {
     console.log(userCredentials)
     const response = await fetch(SIGNUP_URL, {
       method: "POST",
+      headers: {
+        "Content-Type": "multimedia/form"
+      },
       body: userCredentials,
     });
     const data = await response.json();

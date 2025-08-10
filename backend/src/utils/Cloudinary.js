@@ -16,19 +16,33 @@ cloudinary.config({
 export const uploadOnCloudinary = async (file) => {
   if (!file) return;
 
-  if (!userId) {
-    return next(new ErrorHandler(401, "Unauthorized"));
-  }
   try {
     const uploadResult = await cloudinary.uploader.upload(file, {
       resource_type: "auto",
     });
-    fs.unlinkSync(file);
-    console.log(uploadResult);
     return uploadResult;
   } catch (error) {
-    fs.unlinkSync(file);
+    console.log(error);
     return null;
+  } finally {
+    fs.unlinkSync(file);
+  }
+};
+
+export const updateFileOnCloudinary = async (file, imagePublicId) => {
+  if (!file) return;
+
+  try {
+    const updateImage = await cloudinary.uploader.upload(file, {
+      public_id: imagePublicId,
+      resource_type: "auto",
+    });
+    return updateImage;
+  } catch (error) {
+    console.log(error);
+    return null;
+  } finally {
+    fs.unlinkSync(file);
   }
 };
 
