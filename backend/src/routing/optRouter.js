@@ -1,6 +1,10 @@
 import express from "express";
 
 import {
+  sendOTPValidator,
+  verifyOTPValidator,
+} from "../validators/otpValidator.js";
+import {
   otpForSignUp,
   sendOTP,
   verifyOTP,
@@ -8,8 +12,8 @@ import {
 
 const router = express.Router();
 
-router.post("/send-otp", sendOTP);
-router.post("/send-otp-signup", otpForSignUp);
-router.post("/verify-otp", verifyOTP);
+router.post("/send-otp", sendOTPValidator, sendOTP);
+router.post("/send-otp-signup", sendOTPValidator, otpForSignUp);
+router.post("/verify-otp", verifyOTPValidator, verifyOTP);
 
 export default router;

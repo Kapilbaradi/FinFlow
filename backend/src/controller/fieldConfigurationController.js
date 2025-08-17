@@ -151,7 +151,7 @@ const addCategories = catchAsyncError(async (req, res, next) => {
     );
   }
 
-  let fields = await FieldConfiguration.findById(fieldsId);
+  let fields = await FieldConfiguration.findById(id);
   if (!fields) {
     return next(new ErrorHandler(404, "Unauthorized"));
   }
@@ -161,8 +161,9 @@ const addCategories = catchAsyncError(async (req, res, next) => {
   }
 
   category = normalizeString(category);
+  const existingCategory = fields.categoryName.map((cat) => cat.trim().toLowerCase());
 
-  if (fields.categoryName.includes(category)) {
+  if (existingCategory.includes(category)) {
     return next(new ErrorHandler(400, "Category already exists"));
   }
 
@@ -194,7 +195,7 @@ const deleteCategories = catchAsyncError(async (req, res, next) => {
     );
   }
 
-  let fields = new FieldConfiguration.findById(id);
+  let fields = await FieldConfiguration.findById(id);
   if (!fields) {
     return next(new ErrorHandler(400, "Unauthorized"));
   }

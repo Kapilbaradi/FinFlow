@@ -14,6 +14,7 @@ import {
   uploadOnCloudinary,
   updateFileOnCloudinary,
 } from "../utils/Cloudinary.js";
+import { validationResult } from "express-validator";
 
 dotenv.config(); // reads the env file and parse the content and loads it into process.env
 
@@ -53,27 +54,15 @@ const setUser = (userInfo) => {
 export const login = catchAsyncError(async (req, res, next) => {
   let { email, password } = req.body;
 
-  //If email and password doesn't exist then return error.
-  if (!email || !password) {
-    return next(new ErrorHandler(400, "Please enter all the fields"));
+  // collecting error from express validator if any.
+  const error = validationResult(req);
+
+  if (!error.isEmpty()) {
+    return next(new ErrorHandler(400, error.array()[0].msg));
   }
 
   // Normalize the string by trimming spaces and converting to lowercase, ensuring consistent storage even if users input mixed-case emails or extra spaces.
   email = normalizeString(email);
-
-  //validating email and returns email if the entered email is not a proper email.
-  if (!validateEmail(email)) {
-    return next(
-      new ErrorHandler(400, "Please enter correct email and password")
-    );
-  }
-
-  // Returns error is length password is less then 8 letters.
-  if (password.length < 8) {
-    return next(
-      new ErrorHandler(400, "Password should be of contain atleast 8 letters")
-    );
-  }
 
   //finding user in the database by email provided by user.
   let user = await User.findOne({ email });
@@ -102,39 +91,24 @@ export const login = catchAsyncError(async (req, res, next) => {
 });
 
 export const signup = catchAsyncError(async (req, res, next) => {
-  console.log(req.body.email);
   let { email, password, username } = req.body;
 
-  if (!username || !email || !password) {
-    return next(new ErrorHandler(400, "Please fill all the fields"));
+  // collecting error from express validator if any.
+  const error = validationResult(req);
+
+  if (!error.isEmpty()) {
+    return next(new ErrorHandler(400, error.array()[0].msg));
   }
 
   // Normalize the string by trimming spaces and converting to lowercase, ensuring consistent storage even if users input mixed-case data or extra spaces.
   email = normalizeString(email);
   username = normalizeString(username);
 
-  if (username.length < 4) {
-    return next(
-      new ErrorHandler(400, "Username should be of atleast 4 letters")
-    );
-  }
-  //validating email and returns email if the entered email is not a proper email.
-  if (!validateEmail(email)) {
-    return next(
-      new ErrorHandler(400, "Please enter correct email and password")
-    );
-  }
-  // Returns error is length password is less then 8 letters.
-  if (password.length < 8) {
-    return next(
-      new ErrorHandler(400, "Password should be of contain atleast 8 letters")
-    );
-  }
-
   let user = await User.findOne({ email });
   if (user) {
     return next(new ErrorHandler(400, "User already exists"));
   }
+
   //Find the most recent OTP fro the email
   const response = await OTP.findOne({ email })
     .sort({ createdAt: -1 })
@@ -183,22 +157,15 @@ export const getUser = catchAsyncError(async (req, res, next) => {
 export const forgetPassword = catchAsyncError(async (req, res, next) => {
   let { email, newPassword } = req.body;
 
-  if (!email || !newPassword) {
-    return next(new ErrorHandler(400, "Please enter your email"));
+  // collecting error from express validator if any.
+  const error = validationResult(req);
+
+  if (!error.isEmpty()) {
+    return next(new ErrorHandler(400, error.array()[0].msg));
   }
 
   // Normalize the string by trimming spaces and converting to lowercase, ensuring consistent storage even if users input mixed-case data or extra spaces.
   email = normalizeString(email);
-
-  if (!validateEmail(email)) {
-    return next(new ErrorHandler(400, "Please enter correct email"));
-  }
-
-  if (newPassword.length < 8) {
-    return next(
-      new ErrorHandler(400, "Password should be of atlest 8 letters")
-    );
-  }
 
   let user = await User.findOne({ email });
   if (!user) {
@@ -235,22 +202,23 @@ export const updateUserName = catchAsyncError(async (req, res, next) => {
   const { id } = req.body.params;
   const userId = req.user.id;
 
-  if (id !== userId) {
-    return next(new ErrorHandler(400, "Invalid User"));
+  // collecting error from express validator if any.
+  const error = validationResult(req);
+
+  if (!error.isEmpty()) {
+    return next(new ErrorHandler(400, error.array()[0].msg));
   }
 
   // Normalize the string by trimming spaces and converting to lowercase, ensuring consistent storage even if users input mixed-case username or extra spaces.
   username = normalizeString(username);
 
-  if (username.length < 4) {
-    return next(
-      new ErrorHandler(400, "Username should atleast contain 4 letters")
-    );
-  }
-
   let user = await User.findById(id);
   if (!user) {
     return next(new ErrorHandler(400, "User doesn't exists"));
+  }
+
+  if (user.id.toString() !== userId) {
+    return next(new ErrorHandler(400, "Unauthorized"));
   }
 
   user = await User.findByIdAndUpdate(
@@ -279,12 +247,15 @@ export const updateEmail = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler(400, "Invalid User"));
   }
 
+  // collecting error from express validator if any.
+  const error = validationResult(req);
+
+  if (!error.isEmpty()) {
+    return next(new ErrorHandler(400, error.array()[0].msg));
+  }
+
   // Normalize the string by trimming spaces and converting to lowercase, ensuring consistent storage even if users input mixed-case data or extra spaces.
   email = normalizeString(email);
-
-  if (!validateEmail(email)) {
-    return next(400, "Username should atleast contain 4 letters");
-  }
 
   let user = await User.findById(id);
   if (!user) {
@@ -313,23 +284,19 @@ export const updateEmail = catchAsyncError(async (req, res, next) => {
 });
 
 export const resetPassword = catchAsyncError(async (req, res, next) => {
-  const { email, password } = req.body;
+  const { password } = req.body;
   const { id } = req.body.params;
   const userId = req.user.id;
 
+  // collecting error from express validator if any.
+  const error = validationResult(req);
+
+  if (!error.isEmpty()) {
+    return next(new ErrorHandler(400, error.array()[0].msg));
+  }
+
   if (id !== userId) {
     return next(new ErrorHandler(400, "Invalid User"));
-  }
-
-  // Normalize the string by trimming spaces and converting to lowercase, ensuring consistent storage even if users input mixed-case data or extra spaces.
-  email = normalizeString(email);
-
-  if (!validateEmail(email)) {
-    return next(400, "Username should atleast contain 4 letters");
-  }
-
-  if (password.length < 8) {
-    return next(400, "Password should be atleast of 8 letters");
   }
 
   let user = await User.findById(id);

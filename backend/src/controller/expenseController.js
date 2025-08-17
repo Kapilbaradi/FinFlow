@@ -5,6 +5,7 @@ import {
   normalizeString,
 } from "../utils/normalizeData.js";
 import Expense from "../models/ExpenseModel.js";
+import FieldConfiguration from "../models/FieldConfigurationModel.js";
 
 //validating string
 const isAlphabetic = (string) => /^[A-Za-z]+$/.test(string);
@@ -27,6 +28,80 @@ const customFieldFormated = (fields) => {
 
   return customfields;
 };
+
+const validateCustomFields = (customFields, userConfiguredFields) => {
+  //check weather any custom fields are created by user or not. isArray() returns true is the value passed is an array. if no array exists returns false.
+  if (!userConfiguredFields || !Array.isArray(userConfiguredFields)) return;
+
+  for (const customField of customFields) {
+    // check if the field exist of not.
+    const fieldExist = userConfiguredFields.find(
+      (field) =>
+        field.fieldName === customField.fieldName &&
+        field.fieldType === customField.type
+    );
+
+    if (!fieldExist) {
+      throw new ErrorHandler(
+        400,
+        "Invalid Custom Field " + customField.fieldName
+      );
+    }
+
+    // check if the field is requiered
+    if (fieldExist.requierd && (!fieldExist.value || fieldExist.value === "")) {
+      throw new ErrorHandler(
+        400,
+        "Requied Field Value Missing " + customField.fieldName
+      );
+    }
+
+    //check the values of the dropdown passed correctly or not. if not throw error.
+    if (fieldExist.fieldType === "dropdown") {
+      if (!fieldExist.options.includes(fieldExist.value)) {
+        throw new ErrorHandler(
+          400,
+          `Invalid Options for ${
+            fieldExist.fieldName
+          }. Valid options are ${fieldExist.options.join(", ")}`
+        );
+      }
+    }
+  }
+};
+
+function nullCheckBasicFields(body) {
+  const { title, expenseType, paymentType, amount, category, subCategory } =
+    body;
+
+  if (!title || !expenseType || !paymentType || !amount || !category) {
+    throw new ErrorHandler(400, "Please enter required fields");
+  }
+
+  if (amount <= 0) {
+    throw new ErrorHandler(400, "Amount should be greater than 0");
+  }
+}
+
+function validateBasicFields(body, fields) {
+  const { amount, expenseType, paymentType, category, subCategory } = body;
+  const amountRegex = /^\d+(\.\d+)?$/
+  if(!amountRegex.test(amount)) {
+    throw new ErrorHandler(400, "Amount should be of type Number");
+  }
+  if (!fields.expenseType.includes(expenseType)) {
+    throw new ErrorHandler(400, "Expense type doesn't exist");
+  }
+  if (!fields.paymentType.includes(paymentType)) {
+    throw new ErrorHandler(400, "Payment Type doesn't exist");
+  }
+  if (!fields.categoryName.includes(category)) {
+    throw new ErrorHandler(400, "Category doesn't exist");
+  }
+  if (subCategory && !fields.subCategoryName.includes(subCategory)) {
+    throw new ErrorHandler(400, "Sub Category doesn't exist");
+  }
+}
 
 // login to create expense.
 export const createExpense = catchAsyncError(async (req, res, next) => {
@@ -71,6 +146,8 @@ export const createExpense = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler(400, "Please enter required fields"));
   }
 
+  nullCheckBasicFields({ title, expenseType, paymentType, amount, category })
+
   // Normalize string fields
   title = normalizeString(title);
   expenseType = normalizeString(expenseType);
@@ -83,6 +160,31 @@ export const createExpense = catchAsyncError(async (req, res, next) => {
   //validate title
   if (!isAlphabetic(title)) {
     return next(new ErrorHandler(400, "Title Should Only Contain alphabets"));
+  }
+
+  const fields = await FieldConfiguration.findOne({ userId: userId });
+
+  // Validate core fields
+  validateBasicFields(
+    { title, expenseType, paymentType, amount, category, subCategory },
+    fields
+  );
+
+  // Validate custom fields
+  validateCustomFields(customFields, fields.customFields);
+
+  // check weather the entered value exists or not
+  if (!fields.expenseType.includes(expenseType)) {
+    return next(new ErrorHandler(400, "Expense type doesn't exist"));
+  }
+  if (!fields.paymentType.includes(paymentType)) {
+    return next(new ErrorHandler(400, "Payment Type doesn't exist"));
+  }
+  if (!fields.categoryName.includes(category)) {
+    return next(new ErrorHandler(400, "Category doesn't exist"));
+  }
+  if (subCategory && !fields.subCategoryName.includes(subCategory)) {
+    return next(new ErrorHandler(400, "Sub Category doesn't exist"));
   }
 
   //validate amount
@@ -183,6 +285,22 @@ export const editExpense = catchAsyncError(async (req, res, next) => {
   //validate title
   if (!isAlphabetic(title)) {
     return next(new ErrorHandler(400, "Title Should Only Contain alphabets"));
+  }
+
+  const fields = await FieldConfiguration.findOne({ userId: userId });
+
+  // check weather the entered value exists or not
+  if (!fields.expenseType.includes(expenseType)) {
+    return next(new ErrorHandler(400, "Expense type doesn't exist"));
+  }
+  if (!fields.paymentType.includes(paymentType)) {
+    return next(new ErrorHandler(400, "Payment Type doesn't exist"));
+  }
+  if (!fields.categoryName.includes(category)) {
+    return next(new ErrorHandler(400, "Category doesn't exist"));
+  }
+  if (subCategory && !fields.subCategoryName.includes(subCategory)) {
+    return next(new ErrorHandler(400, "Sub Category doesn't exist"));
   }
 
   //validate amount
